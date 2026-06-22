@@ -1,0 +1,247 @@
+{
+  "appName": "GramSiksha",
+  "tagline": "Empowering Rural Education Through Play",
+  "nav": {
+    "home": "Home",
+    "features": "Features",
+    "about": "About",
+    "login": "Login",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "lessons": "Lessons",
+    "quizzes": "Quizzes",
+    "leaderboard": "Leaderboard",
+    "community": "Community",
+    "profile": "Profile",
+    "settings": "Settings",
+    "logout": "Logout",
+    "modules": "Modules",
+    "qna": "Q & A",
+    "myInput": "My Input"
+  },
+  "hero": {
+    "title": "Learn, Play, Grow",
+    "subtitle": "Making quality education accessible and fun for every rural student through gamified learning",
+    "cta": "Start Learning Free",
+    "ctaSecondary": "Watch Demo"
+  },
+  "features": {
+    "title": "Why Students Love GramSiksha",
+    "subtitle": "A platform designed with rural communities in mind",
+    "gamified": {
+      "title": "Gamified Learning",
+      "desc": "Earn XP, collect badges, and compete on leaderboards while learning"
+    },
+    "offline": {
+      "title": "Works Offline",
+      "desc": "Download lessons and learn even without internet connectivity"
+    },
+    "multilingual": {
+      "title": "Multilingual Support",
+      "desc": "Learn in English or Hindi with easy language switching"
+    },
+    "progress": {
+      "title": "Track Progress",
+      "desc": "Parents and teachers can monitor student growth in real-time"
+    },
+    "interactive": {
+      "title": "Interactive Content",
+      "desc": "Video lessons, quizzes, and exercises make learning engaging"
+    },
+    "community": {
+      "title": "Learning Community",
+      "desc": "Connect with peers, share achievements, and learn together"
+    }
+  },
+  "howItWorks": {
+    "title": "How Learning Works",
+    "step1": { "title": "Sign Up", "desc": "Create your free account in seconds" },
+    "step2": { "title": "Choose Lessons", "desc": "Pick subjects that interest you" },
+    "step3": { "title": "Learn & Play", "desc": "Watch videos, take quizzes, earn rewards" },
+    "step4": { "title": "Level Up", "desc": "Track your progress and climb the leaderboard" }
+  },
+  "testimonials": {
+    "title": "What Students Say",
+    "t1": { "name": "Rahul", "role": "Class 5 Student", "text": "I love earning badges! Learning math has become so much fun with GramSiksha." },
+    "t2": { "name": "Meena", "role": "Class 4 Student", "text": "I can learn even when there is no internet. The lessons are really easy to understand." },
+    "t3": { "name": "Priya Ma'am", "role": "Teacher", "text": "GramSiksha has transformed how I teach. Students are more engaged than ever." }
+  },
+  "auth": {
+    "loginTitle": "Welcome Back!",
+    "loginSubtitle": "Sign in to continue your learning journey",
+    "registerTitle": "Join GramSiksha",
+    "registerSubtitle": "Start your learning adventure today",
+    "email": "Email Address",
+    "password": "Password",
+    "name": "Full Name",
+    "confirmPassword": "Confirm Password",
+    "login": "Sign In",
+    "register": "Create Account",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "signUpHere": "Sign up here",
+    "signInHere": "Sign in here",
+    "selectRole": "I am a...",
+    "student": "Student",
+    "teacher": "Teacher",
+    "parent": "Parent",
+    "otpTitle": "Verify Your Account",
+    "otpSubtitle": "Enter the 6-digit code sent to your email",
+    "verify": "Verify",
+    "resendOTP": "Resend OTP"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "dailyStreak": "Daily Streak",
+    "xpPoints": "XP Points",
+    "level": "Level",
+    "coins": "Coins",
+    "completedLessons": "Completed Lessons",
+    "leaderboard": "Leaderboard",
+    "recommended": "Recommended for You",
+    "dailyChallenge": "Daily Challenge",
+    "achievements": "Achievements",
+    "recentActivity": "Recent Activity",
+    "viewAll": "View All",
+    "rank": "Rank",
+    "keepGoing": "Keep the streak alive!",
+    "daysStreak": "day streak"
+  },
+  "learning": {
+    "watchVideo": "Watch Video",
+    "takeQuiz": "Take Quiz",
+    "exercises": "Exercises",
+    "completed": "Completed",
+    "inProgress": "In Progress",
+    "notStarted": "Not Started",
+    "nextLesson": "Next Lesson",
+    "submit": "Submit",
+    "correct": "Correct!",
+    "incorrect": "Try again",
+    "score": "Score",
+    "passed": "Passed!",
+    "failed": "Keep practicing!",
+    "xpEarned": "XP Earned",
+    "coinsEarned": "Coins Earned",
+    "badgeUnlocked": "Badge Unlocked!",
+    "timeLeft": "Time Left"
+  },
+  "teacher": {
+    "dashboard": "Teacher Dashboard",
+    "uploadLesson": "Upload Lesson",
+    "createQuiz": "Create Quiz",
+    "studentProgress": "Student Progress",
+    "analytics": "Analytics",
+    "totalStudents": "Total Students",
+    "totalLessons": "Total Lessons",
+    "avgScore": "Average Score",
+    "activeToday": "Active Today"
+  },
+  "parent": {
+    "dashboard": "Parent Dashboard",
+    "childProgress": "Child's Progress",
+    "weeklySummary": "Weekly Summary",
+    "lessonsCompleted": "Lessons Completed",
+    "timeSpent": "Time Spent",
+    "avgScore": "Average Score"
+  },
+  "community": {
+    "title": "Community",
+    "newPost": "New Post",
+    "discussion": "Discussion",
+    "doubt": "Doubt",
+    "achievement": "Achievement",
+    "reply": "Reply",
+    "like": "Like",
+    "views": "views",
+    "replies": "replies"
+  },
+  "footer": {
+    "description": "Empowering rural education through gamified learning experiences.",
+    "quickLinks": "Quick Links",
+    "support": "Support",
+    "contact": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "faq": "FAQ",
+    "rights": "All rights reserved."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Retry",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "search": "Search...",
+    "noResults": "No results found",
+    "back": "Back"
+  },
+  "modules": {
+    "title": "Class Modules",
+    "subtitle": "Browse subjects and lessons from Class 1 to 12",
+    "allClasses": "All Classes",
+    "chooseSubject": "Choose a subject to start learning",
+    "subjects": "Subjects",
+    "lessons": "Lessons",
+    "quizzes": "Quizzes",
+    "progress": "Progress",
+    "explore": "Explore",
+    "noLessons": "No lessons available yet",
+    "noQuizzes": "No quizzes available yet"
+  },
+  "qna": {
+    "title": "Q & A",
+    "subtitle": "Ask questions and get answers from peers & teachers",
+    "askQuestion": "Ask Question",
+    "searchQuestions": "Search questions...",
+    "allSubjects": "All Subjects",
+    "allGrades": "All Grades",
+    "resolved": "Resolved",
+    "unresolved": "Unresolved",
+    "answers": "Answers",
+    "yourAnswer": "Your Answer",
+    "postAnswer": "Post Answer",
+    "postQuestion": "Post Question",
+    "accept": "Accept",
+    "noQuestions": "No questions yet",
+    "beFirst": "Be the first to ask a question!"
+  },
+  "studentInput": {
+    "title": "My Input",
+    "subtitle": "Manage your notes, feedback & suggestions",
+    "notes": "Notes",
+    "feedback": "Feedback",
+    "suggestions": "Suggestions",
+    "addNew": "Add New",
+    "noteTitle": "Note title...",
+    "feedbackTitle": "Feedback title...",
+    "suggestionTitle": "Suggestion title...",
+    "writeDetail": "Write in detail...",
+    "rating": "Rating",
+    "teacherReply": "Teacher Reply",
+    "pending": "Pending",
+    "reviewed": "Reviewed",
+    "noNotes": "No notes yet",
+    "noFeedback": "No feedback yet",
+    "noSuggestions": "No suggestions yet"
+  },
+  "ncert": {
+    "chapters": "NCERT Chapters",
+    "watchVideo": "Watch Video Lesson",
+    "keyTopics": "Key Topics",
+    "funFact": "Did You Know?",
+    "nextChapter": "Next Chapter",
+    "prevChapter": "Previous Chapter",
+    "chapterProgress": "Chapter Progress",
+    "startLearning": "Start Learning",
+    "videoLesson": "Video Lesson",
+    "animatedExplanation": "Animated Explanation",
+    "formulas": "Important Formulas",
+    "summary": "Chapter Summary",
+    "allChapters": "All Chapters",
+    "curriculum": "NCERT Curriculum",
+    "learnWith": "Learn with animations & videos"
+  }
+}

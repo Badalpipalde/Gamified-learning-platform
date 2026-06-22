@@ -1,0 +1,16 @@
+{
+  "name": "GramSiksha",
+  "short_name": "GramSiksha",
+  "description": "Gamified Learning Platform for Rural Education",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F8FAF5",
+  "theme_color": "#2D6A4F",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
