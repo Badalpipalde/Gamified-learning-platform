@@ -62,6 +62,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/modules', moduleRoutes);
 app.use('/api/qna', qnaRoutes);
 app.use('/api/student-inputs', studentInputRoutes);
+app.use(express.static('./public'));
 
 // Health check
 app.get('/api/health', (req, res) => {
