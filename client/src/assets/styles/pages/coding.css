@@ -1,0 +1,129 @@
+/* Coding Track Styles */
+
+.coding-grid {
+  display: grid;
+  gap: var(--space-6);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .coding-grid {
+    grid-template-columns: 350px 1fr;
+  }
+}
+
+.problem-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+.problem-card {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.problem-card:hover {
+  border-color: var(--color-primary-light);
+}
+
+.problem-card.active {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.problem-card.solved {
+  border-left: 4px solid var(--color-success);
+}
+
+.problem-title {
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-1);
+}
+
+.problem-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  display: flex;
+  gap: var(--space-3);
+}
+
+.editor-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  height: calc(100vh - 160px);
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.code-textarea {
+  flex: 1;
+  width: 100%;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  padding: var(--space-4);
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  border-radius: var(--radius-md);
+  resize: none;
+  outline: none;
+}
+
+.code-textarea:focus {
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+}
+
+.test-results {
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-height: 150px;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.test-case {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.test-case:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.test-case-header {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-1);
+  display: flex;
+  justify-content: space-between;
+}
+
+.test-case-details {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  background: var(--color-surface-raised);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.status-passed { color: var(--color-success); }
+.status-failed { color: var(--color-danger); }
