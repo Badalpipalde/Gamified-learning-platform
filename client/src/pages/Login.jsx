@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import '../assets/styles/pages/auth.css';
+import logo from '../img/logo.png';
 
 function Login() {
   // Fun animation variants for kiddish floating elements
@@ -65,7 +66,7 @@ function Login() {
       <div className="auth-form-section">
         <div className="auth-brand">
           <div className="auth-brand-logo">
-            <img src="\src\img\logo.png" alt="logo" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
+            <img src={logo} alt="logo" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
           </div>
           <span className="auth-brand-name">VidyaQuest</span>
         </div>
@@ -180,7 +181,7 @@ function Login() {
         >
           <div style={{ marginBottom: 'var(--space-6)', display: 'flex', justifyContent: 'center' }}>
             <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img src="/src/img/logo.png" alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+              <img src={logo} alt="logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
             </div>
           </div>
           <h2 style={{ fontFamily: "'Outfit', sans-serif", fontSize: 'var(--font-size-3xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--color-text)', marginBottom: 'var(--space-4)' }}>Learn, Play, Grow.</h2>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import logo from '../../img/logo.png';
 import {
   LayoutDashboard,
   FileEdit,
@@ -141,7 +142,7 @@ function DashboardLayout() {
           </button>
           
           <div className="sidebar-brand-logo" style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src="/src/img/logo.png" alt="VidyaQuest" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <img src={logo} alt="VidyaQuest" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </div>
           <span className="sidebar-brand-name" style={{ fontFamily: 'Outfit, sans-serif', fontSize: '20px', fontWeight: 'bold', color: 'var(--color-primary)' }}>VidyaQuest</span>
         </div>
