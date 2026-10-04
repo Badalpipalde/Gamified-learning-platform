@@ -51,8 +51,6 @@ const navConfig = {
     { label: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} />, end: true },
     { label: 'Teachers', path: '/admin/teachers', icon: <GraduationCap size={20} /> },
     { label: 'Classes', path: '/admin/classes', icon: <School size={20} /> },
-    { label: 'Subjects', path: '/admin/subjects', icon: <BookOpen size={20} /> },
-    { label: 'Quizzes', path: '/admin/quizzes', icon: <FileEdit size={20} /> },
   ],
 };
 

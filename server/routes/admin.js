@@ -6,6 +6,7 @@ const validate = require('../middleware/validate');
 const {
   createTeacher,
   getTeachers,
+  deleteTeacher,
   createClass,
   getClasses,
   updateClass,
@@ -32,6 +33,7 @@ router.post(
 );
 
 router.get('/teachers', getTeachers);
+router.delete('/teachers/:id', deleteTeacher);
 
 // Class management
 router.post(

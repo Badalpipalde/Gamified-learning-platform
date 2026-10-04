@@ -7,6 +7,8 @@ const {
   addStudent,
   deactivateStudent,
   activateStudent,
+  deleteStudent,
+  changeStudentPassword,
 } = require('../controllers/studentController');
 
 const router = express.Router();
@@ -41,6 +43,28 @@ router.patch(
   protect,
   authorize('teacher'),
   activateStudent
+);
+
+// Teacher: remove student
+router.delete(
+  '/:id',
+  protect,
+  authorize('teacher'),
+  deleteStudent
+);
+
+// Teacher: change student password
+router.patch(
+  '/:id/password',
+  protect,
+  authorize('teacher'),
+  [
+    body('password')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters'),
+  ],
+  validate,
+  changeStudentPassword
 );
 
 module.exports = router;

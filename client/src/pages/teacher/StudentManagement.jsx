@@ -89,6 +89,34 @@ function StudentManagement() {
     }
   };
 
+  const handleChangePassword = async (studentId, studentName) => {
+    const newPassword = window.prompt(`Enter new password for ${studentName} (min 6 characters):`);
+    if (!newPassword) return;
+    if (newPassword.length < 6) {
+      alert('Password must be at least 6 characters long.');
+      return;
+    }
+    
+    try {
+      await api.patch(`/students/${studentId}/password`, { password: newPassword });
+      alert('Password updated successfully');
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to update password');
+    }
+  };
+
+  const handleRemoveStudent = async (studentId) => {
+    if (!window.confirm('Are you sure you want to permanently remove this student?')) return;
+    
+    try {
+      await api.delete(`/students/${studentId}`);
+      const { data } = await api.get(`/classes/${selectedClass}/students`);
+      setStudents(data);
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to remove student');
+    }
+  };
+
   if (loading) {
     return (
       <div className="loader">
@@ -280,7 +308,7 @@ function StudentManagement() {
                     </span>
                   </td>
                   <td>
-                    <div className="actions-cell">
+                    <div className="actions-cell" style={{ display: 'flex', gap: '8px' }}>
                       <button
                         className={`btn btn-sm ${s.active ? 'btn-danger' : 'btn-primary'}`}
                         onClick={() =>
@@ -288,6 +316,19 @@ function StudentManagement() {
                         }
                       >
                         {s.active ? 'Deactivate' : 'Activate'}
+                      </button>
+                      <button
+                        className="btn btn-sm"
+                        style={{ backgroundColor: 'var(--color-accent)', color: 'white', border: 'none' }}
+                        onClick={() => handleChangePassword(s._id, s.name)}
+                      >
+                        Password
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleRemoveStudent(s._id)}
+                      >
+                        Remove
                       </button>
                     </div>
                   </td>

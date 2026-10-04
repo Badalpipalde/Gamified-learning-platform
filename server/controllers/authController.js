@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Class = require('../models/Class');
 const generateToken = require('../utils/generateToken');
 
 // @desc    Register a new user (student or parent self-register)
@@ -22,6 +23,17 @@ const register = async (req, res) => {
 
     const fullName = surname ? `${name} ${surname}` : name;
 
+    let classId;
+    if (role === 'student' && className) {
+      const existingClass = await Class.findOne({ 
+        name: className, 
+        section: section || '' 
+      });
+      if (existingClass) {
+        classId = existingClass._id;
+      }
+    }
+
     const user = await User.create({
       name: fullName,
       email,
@@ -29,7 +41,8 @@ const register = async (req, res) => {
       role: role || 'student',
       rollNo,
       className,
-      section
+      section,
+      classId
     });
 
     res.status(201).json({

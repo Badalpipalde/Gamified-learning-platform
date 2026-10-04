@@ -56,18 +56,10 @@ function AdminDashboard() {
 
         <div className="card">
           <h3>📚 Content</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-4)' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--space-4)' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{data.content.classes}</div>
               <div style={{ color: 'var(--color-text-muted)' }}>Classes</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{data.content.subjects}</div>
-              <div style={{ color: 'var(--color-text-muted)' }}>Subjects</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-accent-dark)' }}>{data.content.quizzes}</div>
-              <div style={{ color: 'var(--color-text-muted)' }}>Quizzes</div>
             </div>
           </div>
         </div>

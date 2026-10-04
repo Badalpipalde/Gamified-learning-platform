@@ -71,6 +71,16 @@ const createClass = async (req, res) => {
       await teacher.save();
     }
 
+    // Auto-assign existing students with matching className and section to this class
+    await User.updateMany(
+      { 
+        role: 'student', 
+        className: name, 
+        section: section || '' 
+      },
+      { $set: { classId: newClass._id } }
+    );
+
     const populated = await Class.findById(newClass._id).populate(
       'teacherId',
       'name email'
@@ -121,11 +131,32 @@ const updateClass = async (req, res) => {
       cls.teacherId = teacherId;
     }
 
+    const oldName = cls.name;
+    const oldSection = cls.section;
+
     if (name) cls.name = name;
     if (section !== undefined) cls.section = section;
     if (school !== undefined) cls.school = school;
 
     await cls.save();
+
+    // If name or section changed, update existing students and grab matching unassigned ones
+    if (cls.name !== oldName || cls.section !== oldSection) {
+      // 1. Update students already in this class
+      await User.updateMany(
+        { classId: cls._id, role: 'student' },
+        { $set: { className: cls.name, section: cls.section } }
+      );
+      // 2. Auto-assign any other students matching the new name and section
+      await User.updateMany(
+        { 
+          role: 'student', 
+          className: cls.name, 
+          section: cls.section || '' 
+        },
+        { $set: { classId: cls._id } }
+      );
+    }
     const populated = await Class.findById(cls._id).populate(
       'teacherId',
       'name email'
@@ -162,9 +193,31 @@ const deleteClass = async (req, res) => {
   }
 };
 
+// @desc    Delete a teacher
+// @route   DELETE /api/admin/teachers/:id
+// @access  Private/Admin
+const deleteTeacher = async (req, res) => {
+  try {
+    const teacher = await User.findOne({ _id: req.params.id, role: 'teacher' });
+    if (!teacher) {
+      return res.status(404).json({ message: 'Teacher not found' });
+    }
+    
+    // Unassign classes
+    await Class.updateMany({ teacherId: teacher._id }, { $unset: { teacherId: '' } });
+    await teacher.deleteOne();
+    
+    res.json({ message: 'Teacher removed successfully' });
+  } catch (err) {
+    console.error('DeleteTeacher error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
 module.exports = {
   createTeacher,
   getTeachers,
+  deleteTeacher,
   createClass,
   getClasses,
   updateClass,

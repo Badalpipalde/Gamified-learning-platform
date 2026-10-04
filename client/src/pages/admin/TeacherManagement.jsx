@@ -44,6 +44,17 @@ function TeacherManagement() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure you want to remove this teacher?')) {
+      try {
+        await api.delete(`/admin/teachers/${id}`);
+        fetchTeachers();
+      } catch (err) {
+        alert(err.response?.data?.message || 'Failed to remove teacher');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="loader">
@@ -148,6 +159,7 @@ function TeacherManagement() {
                 <th>Email</th>
                 <th>Status</th>
                 <th>Joined</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -174,6 +186,14 @@ function TeacherManagement() {
                       month: 'short',
                       year: 'numeric',
                     })}
+                  </td>
+                  <td>
+                    <button 
+                      className="btn btn-sm btn-danger" 
+                      onClick={() => handleDelete(t._id)}
+                    >
+                      Remove
+                    </button>
                   </td>
                 </tr>
               ))}

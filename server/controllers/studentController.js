@@ -30,6 +30,8 @@ const addStudent = async (req, res) => {
       password,
       role: 'student',
       classId,
+      className: cls.name,
+      section: cls.section,
       rollNo,
     });
 
@@ -122,4 +124,67 @@ const activateStudent = async (req, res) => {
   }
 };
 
-module.exports = { addStudent, deactivateStudent, activateStudent };
+// @desc    Remove (delete) a student
+// @route   DELETE /api/students/:id
+// @access  Private/Teacher
+const deleteStudent = async (req, res) => {
+  try {
+    const student = await User.findById(req.params.id);
+
+    if (!student || student.role !== 'student') {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Verify teacher owns the class the student belongs to
+    if (student.classId) {
+      const cls = await Class.findById(student.classId);
+      if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
+        return res
+          .status(403)
+          .json({ message: 'Not authorized to manage this student' });
+      }
+    }
+
+    await ParentLink.deleteMany({ studentId: student._id });
+    await student.deleteOne();
+
+    res.json({ message: 'Student removed successfully' });
+  } catch (err) {
+    console.error('DeleteStudent error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// @desc    Change student password
+// @route   PATCH /api/students/:id/password
+// @access  Private/Teacher
+const changeStudentPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const student = await User.findById(req.params.id);
+
+    if (!student || student.role !== 'student') {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    // Verify teacher owns the class the student belongs to
+    if (student.classId) {
+      const cls = await Class.findById(student.classId);
+      if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
+        return res
+          .status(403)
+          .json({ message: 'Not authorized to manage this student' });
+      }
+    }
+
+    student.password = password;
+    await student.save();
+
+    res.json({ message: 'Password updated successfully' });
+  } catch (err) {
+    console.error('ChangePassword error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { addStudent, deactivateStudent, activateStudent, deleteStudent, changeStudentPassword };
