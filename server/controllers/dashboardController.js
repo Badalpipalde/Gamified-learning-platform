@@ -14,73 +14,75 @@ const getStudentDashboard = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    // User with badges
-    const user = await User.findById(userId).populate('badges');
+    const [user, recentAttempts, subjectProgress, quizzesCompleted, pointsBySource] = await Promise.all([
+      // User with badges
+      User.findById(userId).populate('badges'),
 
-    // Recent attempts
-    const recentAttempts = await Attempt.find({ userId })
-      .populate({
-        path: 'quizId',
-        select: 'title level subjectId',
-        populate: { path: 'subjectId', select: 'name slug icon' },
-      })
-      .sort({ createdAt: -1 })
-      .limit(10);
+      // Recent attempts
+      Attempt.find({ userId })
+        .populate({
+          path: 'quizId',
+          select: 'title level subjectId',
+          populate: { path: 'subjectId', select: 'name slug icon' },
+        })
+        .sort({ createdAt: -1 })
+        .limit(10),
 
-    // Subject-wise progress (avg score per subject)
-    const subjectProgress = await Attempt.aggregate([
-      { $match: { userId: user._id } },
-      {
-        $lookup: {
-          from: 'quizzes',
-          localField: 'quizId',
-          foreignField: '_id',
-          as: 'quiz',
-        },
-      },
-      { $unwind: '$quiz' },
-      {
-        $lookup: {
-          from: 'subjects',
-          localField: 'quiz.subjectId',
-          foreignField: '_id',
-          as: 'subject',
-        },
-      },
-      { $unwind: '$subject' },
-      {
-        $group: {
-          _id: '$subject._id',
-          subjectName: { $first: '$subject.name' },
-          subjectIcon: { $first: '$subject.icon' },
-          totalAttempts: { $sum: 1 },
-          totalScore: { $sum: '$score' },
-          totalQuestions: { $sum: '$totalQuestions' },
-        },
-      },
-      {
-        $project: {
-          subjectName: 1,
-          subjectIcon: 1,
-          totalAttempts: 1,
-          avgPercent: {
-            $round: [
-              { $multiply: [{ $divide: ['$totalScore', '$totalQuestions'] }, 100] },
-              0,
-            ],
+      // Subject-wise progress (avg score per subject)
+      Attempt.aggregate([
+        { $match: { userId: userId } },
+        {
+          $lookup: {
+            from: 'quizzes',
+            localField: 'quizId',
+            foreignField: '_id',
+            as: 'quiz',
           },
         },
-      },
-      { $sort: { 'subjectName.en': 1 } },
-    ]);
+        { $unwind: '$quiz' },
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'quiz.subjectId',
+            foreignField: '_id',
+            as: 'subject',
+          },
+        },
+        { $unwind: '$subject' },
+        {
+          $group: {
+            _id: '$subject._id',
+            subjectName: { $first: '$subject.name' },
+            subjectIcon: { $first: '$subject.icon' },
+            totalAttempts: { $sum: 1 },
+            totalScore: { $sum: '$score' },
+            totalQuestions: { $sum: '$totalQuestions' },
+          },
+        },
+        {
+          $project: {
+            subjectName: 1,
+            subjectIcon: 1,
+            totalAttempts: 1,
+            avgPercent: {
+              $round: [
+                { $multiply: [{ $divide: ['$totalScore', '$totalQuestions'] }, 100] },
+                0,
+              ],
+            },
+          },
+        },
+        { $sort: { 'subjectName.en': 1 } },
+      ]),
 
-    // Total quizzes completed
-    const quizzesCompleted = await Attempt.countDocuments({ userId });
+      // Total quizzes completed
+      Attempt.countDocuments({ userId }),
 
-    // Points breakdown by source
-    const pointsBySource = await PointsLedger.aggregate([
-      { $match: { userId: user._id } },
-      { $group: { _id: '$source', total: { $sum: '$points' } } },
+      // Points breakdown by source
+      PointsLedger.aggregate([
+        { $match: { userId: userId } },
+        { $group: { _id: '$source', total: { $sum: '$points' } } },
+      ])
     ]);
 
     res.json({
@@ -124,63 +126,67 @@ const getParentDashboard = async (req, res) => {
 
         if (!child || !child.active) return null;
 
-        // Recent attempts
-        const recentAttempts = await Attempt.find({ userId: childId })
-          .populate({
-            path: 'quizId',
-            select: 'title level',
-            populate: { path: 'subjectId', select: 'name icon' },
-          })
-          .sort({ createdAt: -1 })
-          .limit(5);
+        // Run independent queries for the child in parallel
+        const [recentAttempts, subjectProgress, quizzesCompleted] = await Promise.all([
+          // Recent attempts
+          Attempt.find({ userId: childId })
+            .populate({
+              path: 'quizId',
+              select: 'title level',
+              populate: { path: 'subjectId', select: 'name icon' },
+            })
+            .sort({ createdAt: -1 })
+            .limit(5),
 
-        // Subject progress
-        const subjectProgress = await Attempt.aggregate([
-          { $match: { userId: child._id } },
-          {
-            $lookup: {
-              from: 'quizzes',
-              localField: 'quizId',
-              foreignField: '_id',
-              as: 'quiz',
-            },
-          },
-          { $unwind: '$quiz' },
-          {
-            $lookup: {
-              from: 'subjects',
-              localField: 'quiz.subjectId',
-              foreignField: '_id',
-              as: 'subject',
-            },
-          },
-          { $unwind: '$subject' },
-          {
-            $group: {
-              _id: '$subject._id',
-              subjectName: { $first: '$subject.name' },
-              subjectIcon: { $first: '$subject.icon' },
-              totalAttempts: { $sum: 1 },
-              totalScore: { $sum: '$score' },
-              totalQuestions: { $sum: '$totalQuestions' },
-            },
-          },
-          {
-            $project: {
-              subjectName: 1,
-              subjectIcon: 1,
-              totalAttempts: 1,
-              avgPercent: {
-                $round: [
-                  { $multiply: [{ $divide: ['$totalScore', '$totalQuestions'] }, 100] },
-                  0,
-                ],
+          // Subject progress
+          Attempt.aggregate([
+            { $match: { userId: childId } },
+            {
+              $lookup: {
+                from: 'quizzes',
+                localField: 'quizId',
+                foreignField: '_id',
+                as: 'quiz',
               },
             },
-          },
-        ]);
+            { $unwind: '$quiz' },
+            {
+              $lookup: {
+                from: 'subjects',
+                localField: 'quiz.subjectId',
+                foreignField: '_id',
+                as: 'subject',
+              },
+            },
+            { $unwind: '$subject' },
+            {
+              $group: {
+                _id: '$subject._id',
+                subjectName: { $first: '$subject.name' },
+                subjectIcon: { $first: '$subject.icon' },
+                totalAttempts: { $sum: 1 },
+                totalScore: { $sum: '$score' },
+                totalQuestions: { $sum: '$totalQuestions' },
+              },
+            },
+            {
+              $project: {
+                subjectName: 1,
+                subjectIcon: 1,
+                totalAttempts: 1,
+                avgPercent: {
+                  $round: [
+                    { $multiply: [{ $divide: ['$totalScore', '$totalQuestions'] }, 100] },
+                    0,
+                  ],
+                },
+              },
+            },
+          ]),
 
-        const quizzesCompleted = await Attempt.countDocuments({ userId: childId });
+          // Total quizzes completed
+          Attempt.countDocuments({ userId: childId })
+        ]);
 
         return {
           _id: child._id,
@@ -248,62 +254,63 @@ const getTeacherDashboard = async (req, res) => {
     const totalPoints = activeStudents.reduce((sum, s) => sum + s.totalPoints, 0);
     const avgPoints = activeStudents.length > 0 ? Math.round(totalPoints / activeStudents.length) : 0;
 
-    // Subject-wise class performance
-    const subjectStats = await Attempt.aggregate([
-      { $match: { userId: { $in: studentIds } } },
-      {
-        $lookup: {
-          from: 'quizzes',
-          localField: 'quizId',
-          foreignField: '_id',
-          as: 'quiz',
-        },
-      },
-      { $unwind: '$quiz' },
-      {
-        $lookup: {
-          from: 'subjects',
-          localField: 'quiz.subjectId',
-          foreignField: '_id',
-          as: 'subject',
-        },
-      },
-      { $unwind: '$subject' },
-      {
-        $group: {
-          _id: '$subject._id',
-          subjectName: { $first: '$subject.name' },
-          subjectIcon: { $first: '$subject.icon' },
-          totalAttempts: { $sum: 1 },
-          totalScore: { $sum: '$score' },
-          totalQuestions: { $sum: '$totalQuestions' },
-          uniqueStudents: { $addToSet: '$userId' },
-        },
-      },
-      {
-        $project: {
-          subjectName: 1,
-          subjectIcon: 1,
-          totalAttempts: 1,
-          studentCount: { $size: '$uniqueStudents' },
-          avgPercent: {
-            $round: [
-              { $multiply: [{ $divide: ['$totalScore', '$totalQuestions'] }, 100] },
-              0,
-            ],
-          },
-        },
-      },
-      { $sort: { avgPercent: 1 } }, // weakest first
-    ]);
-
-    // Recent activity count (last 7 days)
+    // Subject-wise class performance and Recent activity count in parallel
     const weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 7);
-    const recentActivity = await Attempt.countDocuments({
-      userId: { $in: studentIds },
-      createdAt: { $gte: weekAgo },
-    });
+
+    const [subjectStats, recentActivity] = await Promise.all([
+      Attempt.aggregate([
+        { $match: { userId: { $in: studentIds } } },
+        {
+          $lookup: {
+            from: 'quizzes',
+            localField: 'quizId',
+            foreignField: '_id',
+            as: 'quiz',
+          },
+        },
+        { $unwind: '$quiz' },
+        {
+          $lookup: {
+            from: 'subjects',
+            localField: 'quiz.subjectId',
+            foreignField: '_id',
+            as: 'subject',
+          },
+        },
+        { $unwind: '$subject' },
+        {
+          $group: {
+            _id: '$subject._id',
+            subjectName: { $first: '$subject.name' },
+            subjectIcon: { $first: '$subject.icon' },
+            totalAttempts: { $sum: 1 },
+            totalScore: { $sum: '$score' },
+            totalQuestions: { $sum: '$totalQuestions' },
+            uniqueStudents: { $addToSet: '$userId' },
+          },
+        },
+        {
+          $project: {
+            subjectName: 1,
+            subjectIcon: 1,
+            totalAttempts: 1,
+            studentCount: { $size: '$uniqueStudents' },
+            avgPercent: {
+              $round: [
+                { $multiply: [{ $divide: ['$totalScore', '$totalQuestions'] }, 100] },
+                0,
+              ],
+            },
+          },
+        },
+        { $sort: { avgPercent: 1 } }, // weakest first
+      ]),
+      Attempt.countDocuments({
+        userId: { $in: studentIds },
+        createdAt: { $gte: weekAgo },
+      })
+    ]);
 
     res.json({
       classes: classes.map((c) => ({ _id: c._id, name: c.name, section: c.section })),
@@ -327,24 +334,34 @@ const getTeacherDashboard = async (req, res) => {
 // @access  Private/Admin
 const getAdminDashboard = async (req, res) => {
   try {
-    const totalStudents = await User.countDocuments({ role: 'student' });
-    const totalTeachers = await User.countDocuments({ role: 'teacher' });
-    const totalParents = await User.countDocuments({ role: 'parent' });
-    const totalClasses = await Class.countDocuments();
-    const totalQuizzes = await Quiz.countDocuments();
-    const totalSubjects = await Subject.countDocuments();
-
-    // Calculate total points across the platform
-    const pointsData = await User.aggregate([
-      { $match: { role: 'student' } },
-      { $group: { _id: null, totalPoints: { $sum: "$totalPoints" } } }
-    ]);
-    const platformPoints = pointsData[0]?.totalPoints || 0;
-
-    // Quizzes attempted in last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const recentAttempts = await Attempt.countDocuments({ createdAt: { $gte: thirtyDaysAgo } });
+
+    // Run independent database counts and aggregations in parallel
+    const [
+      totalStudents,
+      totalTeachers,
+      totalParents,
+      totalClasses,
+      totalQuizzes,
+      totalSubjects,
+      pointsData,
+      recentAttempts
+    ] = await Promise.all([
+      User.countDocuments({ role: 'student' }),
+      User.countDocuments({ role: 'teacher' }),
+      User.countDocuments({ role: 'parent' }),
+      Class.countDocuments(),
+      Quiz.countDocuments(),
+      Subject.countDocuments(),
+      User.aggregate([
+        { $match: { role: 'student' } },
+        { $group: { _id: null, totalPoints: { $sum: "$totalPoints" } } }
+      ]),
+      Attempt.countDocuments({ createdAt: { $gte: thirtyDaysAgo } })
+    ]);
+
+    const platformPoints = pointsData[0]?.totalPoints || 0;
 
     res.json({
       users: {
