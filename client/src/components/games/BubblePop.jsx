@@ -54,7 +54,7 @@ function BubblePop({ question, onComplete, onFail }) {
       display: 'flex',
       flexDirection: 'column'
     }}>
-      <h2 style={{ textAlign: 'center', fontSize: '1.8rem', zIndex: 10, position: 'relative' }}>
+      <h2 style={{ textAlign: 'center', color: '#aaa',fontSize: '1.8rem', zIndex: 10, position: 'relative' }}>
         {question.question}
       </h2>
       <p style={{ textAlign: 'center', color: '#aaa', zIndex: 10, position: 'relative' }}>

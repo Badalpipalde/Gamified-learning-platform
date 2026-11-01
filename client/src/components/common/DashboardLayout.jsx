@@ -28,8 +28,8 @@ import {
 const navConfig = {
   student: [
     { label: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} />, end: true },
-    { label: 'Courses & Quizzes', path: '/student/quizzes', icon: <FileEdit size={20} /> },
-    { label: 'Schedule', path: '/student/coding', icon: <Code size={20} /> }, // Repurposed for now
+    { label: 'Quizzes', path: '/student/quizzes', icon: <FileEdit size={20} /> },
+    { label: 'Coding ', path: '/student/coding', icon: <Code size={20} /> }, // Repurposed for now
     { label: 'Mini Games', path: '/student/games', icon: <Gamepad2 size={20} /> },
     { label: 'Buzz AI', path: '/student/buzz-ai', icon: <Bot size={20} /> },
     { label: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
