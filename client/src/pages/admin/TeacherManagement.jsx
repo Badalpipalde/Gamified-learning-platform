@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached, invalidateCache } from '../../utils/cache';
 import '../../assets/styles/pages/manage.css';
 
 function TeacherManagement() {
-  const [teachers, setTeachers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('admin:teachers', 60_000);
+  const [teachers, setTeachers] = useState(cached?.data || []);
+  const [loading, setLoading] = useState(!cached?.data);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [formError, setFormError] = useState('');
@@ -14,6 +16,7 @@ function TeacherManagement() {
     try {
       const { data } = await api.get('/admin/teachers');
       setTeachers(data);
+      setCached('admin:teachers', data);
     } catch (err) {
       console.error('Failed to fetch teachers:', err);
     } finally {
@@ -34,6 +37,7 @@ function TeacherManagement() {
       await api.post('/admin/teachers', form);
       setForm({ name: '', email: '', password: '' });
       setShowForm(false);
+      invalidateCache('dashboard:admin');
       fetchTeachers();
     } catch (err) {
       setFormError(
@@ -48,6 +52,8 @@ function TeacherManagement() {
     if (window.confirm('Are you sure you want to remove this teacher?')) {
       try {
         await api.delete(`/admin/teachers/${id}`);
+        invalidateCache('dashboard:admin');
+        invalidateCache('admin:classes');
         fetchTeachers();
       } catch (err) {
         alert(err.response?.data?.message || 'Failed to remove teacher');

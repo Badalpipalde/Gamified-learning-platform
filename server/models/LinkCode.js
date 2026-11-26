@@ -26,5 +26,6 @@ const linkCodeSchema = new mongoose.Schema(
 
 // Auto-expire after TTL
 linkCodeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+linkCodeSchema.index({ studentId: 1, used: 1 });
 
 module.exports = mongoose.model('LinkCode', linkCodeSchema);

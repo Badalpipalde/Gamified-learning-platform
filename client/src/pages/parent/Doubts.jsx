@@ -1,24 +1,30 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/doubts.css';
 
 function ParentDoubts() {
-  const [doubts, setDoubts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('doubts:parent', 60_000);
+  const [doubts, setDoubts] = useState(cached?.data || []);
+  const [loading, setLoading] = useState(!cached?.data);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let active = true;
     const fetchDoubts = async () => {
       try {
         const { data } = await api.get('/doubts/parent');
+        if (!active) return;
         setDoubts(data);
+        setCached('doubts:parent', data);
       } catch (err) {
-        setError('Failed to load doubts.');
+        if (active && !cached?.data) setError('Failed to load doubts.');
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchDoubts();
+    return () => { active = false; };
   }, []);
 
   if (loading) {

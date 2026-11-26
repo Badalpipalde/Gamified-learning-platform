@@ -1,7 +1,6 @@
 const Doubt = require('../models/Doubt');
 const Class = require('../models/Class');
 const ParentLink = require('../models/ParentLink');
-const User = require('../models/User');
 
 // @desc    Create a new doubt
 // @route   POST /api/doubts
@@ -11,14 +10,13 @@ const createDoubt = async (req, res) => {
     const { subjectId, title, description } = req.body;
     const studentId = req.user._id;
 
-    const student = await User.findById(studentId);
-    if (!student.classId) {
+    if (!req.user.classId) {
       return res.status(400).json({ message: 'You must be assigned to a class to ask doubts' });
     }
 
     const doubt = await Doubt.create({
       studentId,
-      classId: student.classId,
+      classId: req.user.classId,
       subjectId: subjectId || undefined,
       title,
       description,
@@ -39,7 +37,8 @@ const getStudentDoubts = async (req, res) => {
     const doubts = await Doubt.find({ studentId: req.user._id })
       .populate('subjectId', 'name icon')
       .populate('replies.userId', 'name role')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json(doubts);
   } catch (err) {
@@ -53,14 +52,19 @@ const getStudentDoubts = async (req, res) => {
 // @access  Private/Teacher
 const getTeacherDoubts = async (req, res) => {
   try {
-    const classes = await Class.find({ teacherId: req.user._id });
+    const classes = await Class.find({ teacherId: req.user._id }).select('_id').lean();
     const classIds = classes.map((c) => c._id);
+
+    if (classIds.length === 0) {
+      return res.json([]);
+    }
 
     const doubts = await Doubt.find({ classId: { $in: classIds } })
       .populate('studentId', 'name rollNo')
       .populate('subjectId', 'name icon')
       .populate('replies.userId', 'name role')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json(doubts);
   } catch (err) {
@@ -74,14 +78,21 @@ const getTeacherDoubts = async (req, res) => {
 // @access  Private/Parent
 const getParentDoubts = async (req, res) => {
   try {
-    const links = await ParentLink.find({ parentId: req.user._id, active: true });
+    const links = await ParentLink.find({ parentId: req.user._id, active: true })
+      .select('studentId')
+      .lean();
     const studentIds = links.map((l) => l.studentId);
+
+    if (studentIds.length === 0) {
+      return res.json([]);
+    }
 
     const doubts = await Doubt.find({ studentId: { $in: studentIds } })
       .populate('studentId', 'name')
       .populate('subjectId', 'name icon')
       .populate('replies.userId', 'name role')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     res.json(doubts);
   } catch (err) {
@@ -102,7 +113,6 @@ const addReply = async (req, res) => {
       return res.status(404).json({ message: 'Doubt not found' });
     }
 
-    // Verify access
     if (req.user.role === 'student' && doubt.studentId.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: 'Not authorized' });
     }
@@ -119,18 +129,17 @@ const addReply = async (req, res) => {
       text,
     });
 
-    // If teacher replies, mark as answered. If student replies again, keep it open/answered as is or maybe reopen. 
-    // Let's keep it simple: if teacher, status = answered.
     if (req.user.role === 'teacher') {
       doubt.status = 'answered';
     }
 
     await doubt.save();
-    
+
     const updatedDoubt = await Doubt.findById(req.params.id)
       .populate('studentId', 'name rollNo')
       .populate('subjectId', 'name icon')
-      .populate('replies.userId', 'name role');
+      .populate('replies.userId', 'name role')
+      .lean();
 
     res.status(201).json(updatedDoubt);
   } catch (err) {

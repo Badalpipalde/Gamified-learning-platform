@@ -1,14 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/manage.css';
 
 function StudentManagement() {
   const { user } = useAuth();
-  const [classes, setClasses] = useState([]);
-  const [selectedClass, setSelectedClass] = useState('');
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedClasses = getCached('teacher:classes', 120_000);
+  const initialClassId = cachedClasses?.data?.[0]?._id || '';
+  const cachedStudents = initialClassId
+    ? getCached(`teacher:students:${initialClassId}`, 60_000)?.data || []
+    : [];
+
+  const [classes, setClasses] = useState(cachedClasses?.data || []);
+  const [selectedClass, setSelectedClass] = useState(initialClassId);
+  const [students, setStudents] = useState(cachedStudents);
+  const [loading, setLoading] = useState(!cachedClasses?.data);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -21,34 +28,47 @@ function StudentManagement() {
 
   // Fetch teacher's classes
   useEffect(() => {
+    let active = true;
     const fetchClasses = async () => {
       try {
         const { data } = await api.get('/classes/my');
+        if (!active) return;
         setClasses(data);
-        if (data.length > 0) {
+        setCached('teacher:classes', data);
+        if (data.length > 0 && !selectedClass) {
           setSelectedClass(data[0]._id);
         }
       } catch (err) {
         console.error('Failed to fetch classes:', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchClasses();
+    return () => { active = false; };
   }, []);
 
   // Fetch students when class is selected
   useEffect(() => {
     if (!selectedClass) return;
+    const cached = getCached(`teacher:students:${selectedClass}`, 60_000);
+    if (cached?.data) {
+      setStudents(cached.data);
+    }
+
+    let active = true;
     const fetchStudents = async () => {
       try {
         const { data } = await api.get(`/classes/${selectedClass}/students`);
+        if (!active) return;
         setStudents(data);
+        setCached(`teacher:students:${selectedClass}`, data);
       } catch (err) {
         console.error('Failed to fetch students:', err);
       }
     };
     fetchStudents();
+    return () => { active = false; };
   }, [selectedClass]);
 
   const handleAddStudent = async (e) => {

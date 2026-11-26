@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached, invalidateCache } from '../../utils/cache';
 import '../../assets/styles/pages/manage.css';
 
 function ClassManagement() {
-  const [classes, setClasses] = useState([]);
-  const [teachers, setTeachers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedClasses = getCached('admin:classes', 60_000);
+  const cachedTeachers = getCached('admin:teachers', 60_000);
+
+  const [classes, setClasses] = useState(cachedClasses?.data || []);
+  const [teachers, setTeachers] = useState(cachedTeachers?.data || []);
+  const [loading, setLoading] = useState(!cachedClasses?.data || !cachedTeachers?.data);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -24,6 +28,8 @@ function ClassManagement() {
       ]);
       setClasses(classesRes.data);
       setTeachers(teachersRes.data);
+      setCached('admin:classes', classesRes.data);
+      setCached('admin:teachers', teachersRes.data);
     } catch (err) {
       console.error('Failed to fetch data:', err);
     } finally {
@@ -44,6 +50,7 @@ function ClassManagement() {
       await api.post('/admin/classes', form);
       setForm({ name: '', section: '', teacherId: '', school: '' });
       setShowForm(false);
+      invalidateCache('dashboard:admin');
       fetchData();
     } catch (err) {
       setFormError(
@@ -60,6 +67,7 @@ function ClassManagement() {
     }
     try {
       await api.delete(`/admin/classes/${id}`);
+      invalidateCache('dashboard:admin');
       fetchData();
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to delete class');

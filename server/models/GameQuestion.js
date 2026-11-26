@@ -50,4 +50,6 @@ const gameQuestionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+gameQuestionSchema.index({ gameSlug: 1, difficulty: 1 });
+
 module.exports = mongoose.model('GameQuestion', gameQuestionSchema);

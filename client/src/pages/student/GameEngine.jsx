@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { invalidateCache } from '../../utils/cache';
 import MathRunner from '../../components/games/MathRunner';
 import LogicMaze from '../../components/games/LogicMaze';
 import VirtualLab from '../../components/games/VirtualLab';
@@ -217,6 +218,9 @@ function GameEngine() {
         correctAnswers,
         totalQuestions: questions.length
       });
+      invalidateCache('dashboard:');
+      invalidateCache('leaderboard:');
+      invalidateCache('profile:');
     } catch (err) {
       console.error('Failed to submit game score', err);
     }

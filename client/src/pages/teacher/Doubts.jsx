@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/doubts.css';
 
 function TeacherDoubts() {
-  const [doubts, setDoubts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('doubts:teacher', 60_000);
+  const [doubts, setDoubts] = useState(cached?.data || []);
+  const [loading, setLoading] = useState(!cached?.data);
 
   // Reply state (doubtId -> text)
   const [replyText, setReplyText] = useState({});
@@ -14,6 +16,7 @@ function TeacherDoubts() {
     try {
       const { data } = await api.get('/doubts/teacher');
       setDoubts(data);
+      setCached('doubts:teacher', data);
     } catch (err) {
       console.error('Failed to fetch doubts', err);
     } finally {

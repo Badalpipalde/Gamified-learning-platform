@@ -1,34 +1,42 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/quiz.css';
 
 const RANK_ICONS = ['🥇', '🥈', '🥉'];
 
 function Leaderboard() {
   const { user } = useAuth();
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const classId = user?.classId ? (typeof user.classId === 'object' ? user.classId._id : user.classId) : null;
+  const cacheKey = classId ? `leaderboard:${classId}` : null;
+  const cached = cacheKey ? getCached(cacheKey, 60_000) : null;
+
+  const [leaderboard, setLeaderboard] = useState(cached?.data || []);
+  const [loading, setLoading] = useState(classId ? !cached?.data : false);
 
   useEffect(() => {
-    const fetchLeaderboard = async () => {
-      if (!user?.classId) {
-        setLoading(false);
-        return;
-      }
+    if (!classId) {
+      setLoading(false);
+      return;
+    }
 
+    let active = true;
+    const fetchLeaderboard = async () => {
       try {
-        const classId = typeof user.classId === 'object' ? user.classId._id : user.classId;
         const { data } = await api.get(`/points/leaderboard/${classId}`);
+        if (!active) return;
         setLeaderboard(data);
+        setCached(cacheKey, data);
       } catch (err) {
         console.error('Failed to fetch leaderboard:', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchLeaderboard();
-  }, [user]);
+    return () => { active = false; };
+  }, [classId, cacheKey]);
 
   if (loading) {
     return (

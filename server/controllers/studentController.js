@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Class = require('../models/Class');
 const ParentLink = require('../models/ParentLink');
+const protect = require('../middleware/auth');
 
 // @desc    Add a student to teacher's class (create account)
 // @route   POST /api/classes/:id/students
@@ -10,16 +11,17 @@ const addStudent = async (req, res) => {
     const classId = req.params.id;
     const { name, email, password, rollNo } = req.body;
 
-    // Verify teacher owns the class
-    const cls = await Class.findById(classId);
+    const [cls, existing] = await Promise.all([
+      Class.findById(classId).select('teacherId name section').lean(),
+      User.findOne({ email }).select('_id').lean(),
+    ]);
+
     if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
       return res
         .status(403)
         .json({ message: 'Not authorized to manage this class' });
     }
 
-    // Check if email already exists
-    const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'Email already registered' });
     }
@@ -61,9 +63,8 @@ const deactivateStudent = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Verify teacher owns the class the student belongs to
     if (student.classId) {
-      const cls = await Class.findById(student.classId);
+      const cls = await Class.findById(student.classId).select('teacherId').lean();
       if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
         return res
           .status(403)
@@ -72,13 +73,12 @@ const deactivateStudent = async (req, res) => {
     }
 
     student.active = false;
-    await student.save();
+    await Promise.all([
+      student.save(),
+      ParentLink.updateMany({ studentId: student._id }, { active: false }),
+    ]);
 
-    // Revoke parent access automatically
-    await ParentLink.updateMany(
-      { studentId: student._id },
-      { active: false }
-    );
+    protect.invalidateUserCache(student._id);
 
     res.json({ message: 'Student deactivated', _id: student._id });
   } catch (err) {
@@ -98,9 +98,8 @@ const activateStudent = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Verify teacher owns the class
     if (student.classId) {
-      const cls = await Class.findById(student.classId);
+      const cls = await Class.findById(student.classId).select('teacherId').lean();
       if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
         return res
           .status(403)
@@ -109,13 +108,12 @@ const activateStudent = async (req, res) => {
     }
 
     student.active = true;
-    await student.save();
+    await Promise.all([
+      student.save(),
+      ParentLink.updateMany({ studentId: student._id }, { active: true }),
+    ]);
 
-    // Restore parent access
-    await ParentLink.updateMany(
-      { studentId: student._id },
-      { active: true }
-    );
+    protect.invalidateUserCache(student._id);
 
     res.json({ message: 'Student activated', _id: student._id });
   } catch (err) {
@@ -129,15 +127,14 @@ const activateStudent = async (req, res) => {
 // @access  Private/Teacher
 const deleteStudent = async (req, res) => {
   try {
-    const student = await User.findById(req.params.id);
+    const student = await User.findById(req.params.id).select('role classId').lean();
 
     if (!student || student.role !== 'student') {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Verify teacher owns the class the student belongs to
     if (student.classId) {
-      const cls = await Class.findById(student.classId);
+      const cls = await Class.findById(student.classId).select('teacherId').lean();
       if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
         return res
           .status(403)
@@ -145,8 +142,12 @@ const deleteStudent = async (req, res) => {
       }
     }
 
-    await ParentLink.deleteMany({ studentId: student._id });
-    await student.deleteOne();
+    await Promise.all([
+      ParentLink.deleteMany({ studentId: student._id }),
+      User.deleteOne({ _id: student._id }),
+    ]);
+
+    protect.invalidateUserCache(student._id);
 
     res.json({ message: 'Student removed successfully' });
   } catch (err) {
@@ -167,9 +168,8 @@ const changeStudentPassword = async (req, res) => {
       return res.status(404).json({ message: 'Student not found' });
     }
 
-    // Verify teacher owns the class the student belongs to
     if (student.classId) {
-      const cls = await Class.findById(student.classId);
+      const cls = await Class.findById(student.classId).select('teacherId').lean();
       if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
         return res
           .status(403)

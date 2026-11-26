@@ -10,14 +10,16 @@ const User = require('../models/User');
 const getProblems = async (req, res) => {
   try {
     const studentId = req.user._id;
-    const problems = await CodeProblem.find().select('-testCases.hidden');
-    const attempts = await CodeAttempt.find({ studentId, status: 'passed' }).select('problemId');
+    const [problems, attempts] = await Promise.all([
+      CodeProblem.find().select('-testCases.hidden').lean(),
+      CodeAttempt.find({ studentId, status: 'passed' }).select('problemId').lean(),
+    ]);
 
-    const solvedIds = attempts.map((a) => a.problemId.toString());
+    const solvedSet = new Set(attempts.map((a) => a.problemId.toString()));
 
     const annotated = problems.map((p) => ({
-      ...p.toObject(),
-      solved: solvedIds.includes(p._id.toString()),
+      ...p,
+      solved: solvedSet.has(p._id.toString()),
     }));
 
     res.json(annotated);
@@ -32,14 +34,13 @@ const getProblems = async (req, res) => {
 // @access  Private/Student
 const getProblem = async (req, res) => {
   try {
-    const problem = await CodeProblem.findById(req.params.id);
+    const problem = await CodeProblem.findById(req.params.id).lean();
     if (!problem) return res.status(404).json({ message: 'Problem not found' });
-    
+
     // Mask hidden test cases from student view
-    const pObj = problem.toObject();
-    pObj.testCases = pObj.testCases.map(tc => tc.hidden ? { hidden: true } : tc);
-    
-    res.json(pObj);
+    problem.testCases = problem.testCases.map((tc) => (tc.hidden ? { hidden: true } : tc));
+
+    res.json(problem);
   } catch (err) {
     console.error('GetProblem error:', err);
     res.status(500).json({ message: 'Server error' });
@@ -53,7 +54,7 @@ const executeCode = async (req, res) => {
   try {
     const studentId = req.user._id;
     const { code } = req.body;
-    const problem = await CodeProblem.findById(req.params.id);
+    const problem = await CodeProblem.findById(req.params.id).lean();
 
     if (!problem) {
       return res.status(404).json({ message: 'Problem not found' });
@@ -62,8 +63,6 @@ const executeCode = async (req, res) => {
     const testResults = [];
     let allPassed = true;
 
-    // We assume the user's code defines a function called `solution`
-    // We will append a call to this function for each test case
     for (let i = 0; i < problem.testCases.length; i++) {
       const tc = problem.testCases[i];
       const sandbox = { result: null, console: { log: () => {} } };
@@ -75,7 +74,6 @@ const executeCode = async (req, res) => {
       `;
 
       try {
-        // Run with a 1-second timeout to prevent infinite loops
         vm.runInContext(executableCode, sandbox, { timeout: 1000 });
 
         const actualOutput = String(sandbox.result);
@@ -90,7 +88,7 @@ const executeCode = async (req, res) => {
           expected: tc.hidden ? '?' : expected,
           actual: actualOutput,
           passed,
-          hidden: tc.hidden
+          hidden: tc.hidden,
         });
       } catch (err) {
         allPassed = false;
@@ -101,41 +99,62 @@ const executeCode = async (req, res) => {
           actual: err.message,
           passed: false,
           error: true,
-          hidden: tc.hidden
+          hidden: tc.hidden,
         });
       }
     }
 
     const status = allPassed ? 'passed' : 'failed';
-    
-    // Check if already solved
-    const existingPassed = await CodeAttempt.findOne({ studentId, problemId: problem._id, status: 'passed' });
     let pointsEarned = 0;
 
-    if (allPassed && !existingPassed) {
-      pointsEarned = problem.points;
-      
-      // Award points
-      await PointsLedger.create({
-        userId: studentId,
-        points: pointsEarned,
-        source: 'coding',
-        referenceId: problem._id,
-        description: `Solved coding problem: ${problem.title}`,
-      });
+    if (allPassed) {
+      const existingPassed = await CodeAttempt.findOne({
+        studentId,
+        problemId: problem._id,
+        status: 'passed',
+      })
+        .select('_id')
+        .lean();
 
-      await User.findByIdAndUpdate(studentId, {
-        $inc: { totalPoints: pointsEarned },
+      if (!existingPassed) {
+        pointsEarned = problem.points;
+        await Promise.all([
+          PointsLedger.create({
+            userId: studentId,
+            points: pointsEarned,
+            source: 'coding',
+            referenceId: problem._id,
+            description: `Solved coding problem: ${problem.title}`,
+          }),
+          User.findByIdAndUpdate(studentId, {
+            $inc: { totalPoints: pointsEarned },
+          }),
+          CodeAttempt.create({
+            studentId,
+            problemId: problem._id,
+            code,
+            status,
+            pointsEarned,
+          }),
+        ]);
+      } else {
+        await CodeAttempt.create({
+          studentId,
+          problemId: problem._id,
+          code,
+          status,
+          pointsEarned,
+        });
+      }
+    } else {
+      await CodeAttempt.create({
+        studentId,
+        problemId: problem._id,
+        code,
+        status,
+        pointsEarned,
       });
     }
-
-    await CodeAttempt.create({
-      studentId,
-      problemId: problem._id,
-      code,
-      status,
-      pointsEarned,
-    });
 
     res.json({
       success: allPassed,

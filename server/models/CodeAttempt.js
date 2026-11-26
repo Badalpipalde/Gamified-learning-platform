@@ -29,4 +29,6 @@ const codeAttemptSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+codeAttemptSchema.index({ studentId: 1, status: 1, problemId: 1 });
+
 module.exports = mongoose.model('CodeAttempt', codeAttemptSchema);

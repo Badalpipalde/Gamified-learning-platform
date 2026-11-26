@@ -30,5 +30,6 @@ const classSchema = new mongoose.Schema(
 
 // Compound index to prevent duplicate class+section per teacher
 classSchema.index({ name: 1, section: 1, teacherId: 1 }, { unique: true });
+classSchema.index({ teacherId: 1 });
 
 module.exports = mongoose.model('Class', classSchema);

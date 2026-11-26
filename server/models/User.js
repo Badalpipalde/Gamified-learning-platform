@@ -95,5 +95,7 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 
 userSchema.index({ role: 1 });
 userSchema.index({ classId: 1 });
+userSchema.index({ classId: 1, role: 1, active: 1, totalPoints: -1 });
+userSchema.index({ role: 1, className: 1, section: 1 });
 
 module.exports = mongoose.model('User', userSchema);

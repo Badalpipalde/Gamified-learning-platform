@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/doubts.css';
 
 function Doubts() {
-  const [doubts, setDoubts] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedDoubts = getCached('doubts:student', 60_000);
+  const cachedSubjects = getCached('quizzes:subjects', 120_000);
+
+  const [doubts, setDoubts] = useState(cachedDoubts?.data || []);
+  const [subjects, setSubjects] = useState(cachedSubjects?.data || []);
+  const [loading, setLoading] = useState(!cachedDoubts?.data);
   const [error, setError] = useState('');
 
   // New doubt form state
@@ -23,16 +27,35 @@ function Doubts() {
     try {
       const { data } = await api.get('/doubts/student');
       setDoubts(data);
+      setCached('doubts:student', data);
     } catch (err) {
       console.error('Failed to fetch doubts', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDoubts();
-    // Also fetch subjects for the dropdown
-    api.get('/quizzes/subjects').then((res) => setSubjects(res.data)).catch(console.error);
-    setLoading(false);
+    let active = true;
+    Promise.all([
+      api.get('/doubts/student').then((res) => {
+        if (!active) return;
+        setDoubts(res.data);
+        setCached('doubts:student', res.data);
+      }),
+      cachedSubjects?.data && !cachedSubjects.stale
+        ? Promise.resolve()
+        : api.get('/quizzes/subjects').then((res) => {
+            if (!active) return;
+            setSubjects(res.data);
+            setCached('quizzes:subjects', res.data);
+          }),
+    ])
+      .catch((err) => console.error('Failed to load doubts/subjects', err))
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, []);
 
   const handleSubmitDoubt = async (e) => {

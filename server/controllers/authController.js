@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Class = require('../models/Class');
 const generateToken = require('../utils/generateToken');
+const protect = require('../middleware/auth');
 
 // @desc    Register a new user (student or parent self-register)
 // @route   POST /api/auth/register
@@ -16,23 +17,18 @@ const register = async (req, res) => {
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    const [existingUser, existingClass] = await Promise.all([
+      User.findOne({ email }).select('_id').lean(),
+      role === 'student' && className
+        ? Class.findOne({ name: className, section: section || '' }).select('_id').lean()
+        : Promise.resolve(null),
+    ]);
+
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
     }
 
     const fullName = surname ? `${name} ${surname}` : name;
-
-    let classId;
-    if (role === 'student' && className) {
-      const existingClass = await Class.findOne({ 
-        name: className, 
-        section: section || '' 
-      });
-      if (existingClass) {
-        classId = existingClass._id;
-      }
-    }
 
     const user = await User.create({
       name: fullName,
@@ -42,7 +38,7 @@ const register = async (req, res) => {
       rollNo,
       className,
       section,
-      classId
+      classId: existingClass ? existingClass._id : undefined,
     });
 
     res.status(201).json({
@@ -65,7 +61,8 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email }).select('+password');
+    const user = await User.findOne({ email })
+      .select('+password name email role language classId className section rollNo active');
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
@@ -105,7 +102,8 @@ const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id)
       .populate('classId', 'name section school')
-      .populate('badges');
+      .populate('badges')
+      .lean();
 
     res.json(user);
   } catch (err) {
@@ -125,6 +123,7 @@ const updateLanguage = async (req, res) => {
     }
 
     await User.findByIdAndUpdate(req.user._id, { language });
+    protect.invalidateUserCache(req.user._id);
 
     res.json({ language });
   } catch (err) {

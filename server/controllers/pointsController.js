@@ -1,24 +1,27 @@
 const User = require('../models/User');
 const PointsLedger = require('../models/PointsLedger');
 const Badge = require('../models/Badge');
-const Attempt = require('../models/Attempt');
 
 // @desc    Get current student's points summary
 // @route   GET /api/points/me
 // @access  Private/Student
 const getMyPoints = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate('badges');
+    const userId = req.user._id;
 
-    // Recent transactions
-    const recentLedger = await PointsLedger.find({ userId: req.user._id })
-      .sort({ createdAt: -1 })
-      .limit(20);
-
-    // Points by source
-    const pointsBySource = await PointsLedger.aggregate([
-      { $match: { userId: req.user._id } },
-      { $group: { _id: '$source', total: { $sum: '$points' } } },
+    const [user, recentLedger, pointsBySource] = await Promise.all([
+      User.findById(userId)
+        .select('totalPoints level streak badges')
+        .populate('badges')
+        .lean(),
+      PointsLedger.find({ userId })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean(),
+      PointsLedger.aggregate([
+        { $match: { userId } },
+        { $group: { _id: '$source', total: { $sum: '$points' } } },
+      ]),
     ]);
 
     res.json({
@@ -49,9 +52,9 @@ const getLeaderboard = async (req, res) => {
     })
       .select('name rollNo totalPoints level streak badges')
       .sort({ totalPoints: -1 })
-      .limit(50);
+      .limit(50)
+      .lean();
 
-    // Add rank
     const leaderboard = students.map((s, i) => ({
       rank: i + 1,
       _id: s._id,
@@ -75,21 +78,23 @@ const getLeaderboard = async (req, res) => {
 // @access  Private
 const getBadges = async (req, res) => {
   try {
-    const badges = await Badge.find().sort({ 'criteria.threshold': 1 });
-
-    // If student, mark which ones they have
     if (req.user.role === 'student') {
-      const user = await User.findById(req.user._id);
-      const userBadgeIds = user.badges.map((b) => b.toString());
+      const [badges, user] = await Promise.all([
+        Badge.find().sort({ 'criteria.threshold': 1 }).lean(),
+        User.findById(req.user._id).select('badges').lean(),
+      ]);
+
+      const userBadgeSet = new Set((user?.badges || []).map((b) => b.toString()));
 
       const badgesWithStatus = badges.map((b) => ({
-        ...b.toObject(),
-        earned: userBadgeIds.includes(b._id.toString()),
+        ...b,
+        earned: userBadgeSet.has(b._id.toString()),
       }));
 
       return res.json(badgesWithStatus);
     }
 
+    const badges = await Badge.find().sort({ 'criteria.threshold': 1 }).lean();
     res.json(badges);
   } catch (err) {
     console.error('GetBadges error:', err);

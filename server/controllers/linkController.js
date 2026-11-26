@@ -6,7 +6,6 @@ const User = require('../models/User');
 const CODE_TTL_MINUTES = 30;
 
 function generateCode() {
-  // 6-char alphanumeric uppercase
   return crypto.randomBytes(3).toString('hex').toUpperCase();
 }
 
@@ -17,7 +16,6 @@ const generateLinkCode = async (req, res) => {
   try {
     const studentId = req.user._id;
 
-    // Invalidate any existing unused codes for this student
     await LinkCode.updateMany(
       { studentId, used: false },
       { $set: { expiresAt: new Date() } }
@@ -61,32 +59,31 @@ const redeemLinkCode = async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired code' });
     }
 
-    // Check if already linked
-    const existing = await ParentLink.findOne({
-      parentId,
-      studentId: linkCode.studentId,
-    });
+    const [existing, student] = await Promise.all([
+      ParentLink.findOne({
+        parentId,
+        studentId: linkCode.studentId,
+      }),
+      User.findById(linkCode.studentId).select('name rollNo').lean(),
+    ]);
 
     if (existing) {
       if (existing.active) {
         return res.status(400).json({ message: 'You are already linked to this student' });
       }
-      // Re-activate
       existing.active = true;
-      await existing.save();
+      linkCode.used = true;
+      await Promise.all([existing.save(), linkCode.save()]);
     } else {
-      await ParentLink.create({
-        parentId,
-        studentId: linkCode.studentId,
-      });
+      linkCode.used = true;
+      await Promise.all([
+        ParentLink.create({
+          parentId,
+          studentId: linkCode.studentId,
+        }),
+        linkCode.save(),
+      ]);
     }
-
-    // Mark code as used
-    linkCode.used = true;
-    await linkCode.save();
-
-    // Get student info
-    const student = await User.findById(linkCode.studentId).select('name rollNo');
 
     res.json({
       message: 'Successfully linked!',
@@ -105,7 +102,8 @@ const getLinkedChildren = async (req, res) => {
   try {
     const links = await ParentLink.find({ parentId: req.user._id, active: true })
       .populate('studentId', 'name rollNo classId totalPoints level streak')
-      .sort({ linkedAt: -1 });
+      .sort({ linkedAt: -1 })
+      .lean();
 
     const children = links
       .filter((l) => l.studentId)
@@ -131,18 +129,19 @@ const getLinkedChildren = async (req, res) => {
 // @access  Private/Parent
 const unlinkChild = async (req, res) => {
   try {
-    const link = await ParentLink.findOne({
-      parentId: req.user._id,
-      studentId: req.params.studentId,
-      active: true,
-    });
+    const link = await ParentLink.findOneAndUpdate(
+      {
+        parentId: req.user._id,
+        studentId: req.params.studentId,
+        active: true,
+      },
+      { $set: { active: false } },
+      { new: true }
+    ).lean();
 
     if (!link) {
       return res.status(404).json({ message: 'Link not found' });
     }
-
-    link.active = false;
-    await link.save();
 
     res.json({ message: 'Child unlinked' });
   } catch (err) {

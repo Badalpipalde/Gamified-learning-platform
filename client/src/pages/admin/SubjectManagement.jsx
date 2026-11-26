@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached, invalidateCache } from '../../utils/cache';
 
 function SubjectManagement() {
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('admin:subjects', 60_000);
+  const [subjects, setSubjects] = useState(cached?.data || []);
+  const [loading, setLoading] = useState(!cached?.data);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
@@ -18,6 +20,7 @@ function SubjectManagement() {
     try {
       const { data } = await api.get('/admin/subjects');
       setSubjects(data);
+      setCached('admin:subjects', data);
     } catch (err) {
       console.error('Failed to load subjects', err);
     } finally {
@@ -50,6 +53,8 @@ function SubjectManagement() {
       
       setSuccess('Subject created successfully!');
       setFormData({ nameEn: '', nameHi: '', slug: '', icon: '📚' });
+      invalidateCache('quizzes:subjects');
+      invalidateCache('dashboard:admin');
       fetchSubjects();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to create subject');

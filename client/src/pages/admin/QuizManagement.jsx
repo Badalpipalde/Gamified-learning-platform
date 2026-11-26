@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 
 function QuizManagement() {
-  const [quizzes, setQuizzes] = useState([]);
-  const [subjects, setSubjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedQuizzes = getCached('admin:quizzes', 60_000);
+  const cachedSubjects = getCached('admin:subjects', 60_000);
+
+  const [quizzes, setQuizzes] = useState(cachedQuizzes?.data || []);
+  const [subjects, setSubjects] = useState(cachedSubjects?.data || []);
+  const [loading, setLoading] = useState(!cachedQuizzes?.data || !cachedSubjects?.data);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   
@@ -23,6 +27,8 @@ function QuizManagement() {
       ]);
       setQuizzes(quizRes.data);
       setSubjects(subjRes.data);
+      setCached('admin:quizzes', quizRes.data);
+      setCached('admin:subjects', subjRes.data);
     } catch (err) {
       console.error('Failed to load data', err);
     } finally {

@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { getCached, setCached, invalidateCache } from '../../utils/cache';
 
 function LinkChild() {
+  const cachedChildren = getCached('parent:children', 60_000);
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [children, setChildren] = useState([]);
+  const [children, setChildren] = useState(cachedChildren?.data || []);
   const navigate = useNavigate();
 
   const fetchChildren = async () => {
     try {
       const { data } = await api.get('/link/children');
       setChildren(data);
+      setCached('parent:children', data);
     } catch (err) {
       console.error('Failed to fetch children', err);
     }
@@ -38,6 +41,8 @@ function LinkChild() {
       const { data } = await api.post('/link/redeem', { code });
       setSuccess(`Successfully linked to ${data.student.name}!`);
       setCode('');
+      invalidateCache('dashboard:parent');
+      invalidateCache('doubts:parent');
       fetchChildren();
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to link account');
@@ -51,6 +56,8 @@ function LinkChild() {
 
     try {
       await api.delete(`/link/children/${studentId}`);
+      invalidateCache('dashboard:parent');
+      invalidateCache('doubts:parent');
       fetchChildren();
     } catch (err) {
       alert('Failed to unlink child');

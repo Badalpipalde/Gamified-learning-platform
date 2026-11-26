@@ -8,14 +8,22 @@ const getStudentsByClass = async (req, res) => {
   try {
     const classId = req.params.id;
 
-    // If teacher, ensure they own the class
     if (req.user.role === 'teacher') {
-      const cls = await Class.findById(classId);
+      const [cls, students] = await Promise.all([
+        Class.findById(classId).select('teacherId').lean(),
+        User.find({ classId, role: 'student' })
+          .select('-password')
+          .sort({ name: 1 })
+          .lean(),
+      ]);
+
       if (!cls || cls.teacherId.toString() !== req.user._id.toString()) {
         return res
           .status(403)
           .json({ message: 'Not authorized to view this class' });
       }
+
+      return res.json(students);
     }
 
     const students = await User.find({
@@ -23,7 +31,8 @@ const getStudentsByClass = async (req, res) => {
       role: 'student',
     })
       .select('-password')
-      .sort({ name: 1 });
+      .sort({ name: 1 })
+      .lean();
 
     res.json(students);
   } catch (err) {
@@ -37,7 +46,7 @@ const getStudentsByClass = async (req, res) => {
 // @access  Private/Teacher
 const getMyClasses = async (req, res) => {
   try {
-    const classes = await Class.find({ teacherId: req.user._id });
+    const classes = await Class.find({ teacherId: req.user._id }).lean();
     res.json(classes);
   } catch (err) {
     console.error('GetMyClasses error:', err);

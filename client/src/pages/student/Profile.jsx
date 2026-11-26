@@ -2,26 +2,32 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 
 function Profile() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('profile:me', 60_000);
+  const [profileData, setProfileData] = useState(cached?.data || null);
+  const [loading, setLoading] = useState(!cached?.data);
 
   useEffect(() => {
+    let active = true;
     const fetchProfile = async () => {
       try {
-        const response = await api.get('/auth/me'); 
+        const response = await api.get('/auth/me');
+        if (!active) return;
         setProfileData(response.data);
+        setCached('profile:me', response.data);
       } catch (err) {
         console.error('Failed to fetch profile', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
-    
+
     fetchProfile();
+    return () => { active = false; };
   }, []);
 
   const handleLogout = () => {

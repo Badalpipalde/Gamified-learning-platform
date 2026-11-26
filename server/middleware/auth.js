@@ -62,4 +62,11 @@ const protect = async (req, res, next) => {
   }
 };
 
+function invalidateUserCache(userId) {
+  if (userId) {
+    userCache.delete(String(userId));
+  }
+}
+
+protect.invalidateUserCache = invalidateUserCache;
 module.exports = protect;

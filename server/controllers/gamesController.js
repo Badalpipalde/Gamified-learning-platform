@@ -13,10 +13,9 @@ const getGameQuestions = async (req, res) => {
     const query = { gameSlug };
     if (difficulty) query.difficulty = difficulty;
 
-    // Use MongoDB aggregation to get random questions
     const questions = await GameQuestion.aggregate([
       { $match: query },
-      { $sample: { size: parseInt(limit) } }
+      { $sample: { size: parseInt(limit, 10) } },
     ]);
 
     res.json(questions);
@@ -35,16 +34,17 @@ const submitGameScore = async (req, res) => {
     const { gameSlug, xpEarned, correctAnswers, totalQuestions } = req.body;
 
     if (xpEarned > 0) {
-      await PointsLedger.create({
-        userId: studentId,
-        points: xpEarned,
-        source: 'game',
-        description: `Played game: ${gameSlug} (${correctAnswers}/${totalQuestions})`,
-      });
-
-      await User.findByIdAndUpdate(studentId, {
-        $inc: { totalPoints: xpEarned },
-      });
+      await Promise.all([
+        PointsLedger.create({
+          userId: studentId,
+          points: xpEarned,
+          source: 'game',
+          description: `Played game: ${gameSlug} (${correctAnswers}/${totalQuestions})`,
+        }),
+        User.findByIdAndUpdate(studentId, {
+          $inc: { totalPoints: xpEarned },
+        }),
+      ]);
     }
 
     res.json({ success: true, xpAwarded: xpEarned });
