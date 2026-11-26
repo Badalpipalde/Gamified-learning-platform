@@ -118,8 +118,8 @@ function Register() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '15px' }}>
-              <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-grid-2">
+              <div className="form-group">
                 <label className="form-label" htmlFor="register-name">
                   First Name
                 </label>
@@ -133,7 +133,7 @@ function Register() {
                   required
                 />
               </div>
-              <div className="form-group" style={{ flex: 1 }}>
+              <div className="form-group">
                 <label className="form-label" htmlFor="register-surname">
                   Surname
                 </label>
@@ -151,8 +151,8 @@ function Register() {
 
             {role === 'student' && (
               <>
-                <div style={{ display: 'flex', gap: '15px' }}>
-                  <div className="form-group" style={{ flex: 1 }}>
+                <div className="form-grid-2">
+                  <div className="form-group">
                     <label className="form-label" htmlFor="register-class">
                       Class
                     </label>

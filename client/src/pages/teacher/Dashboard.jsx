@@ -111,10 +111,10 @@ function TeacherDashboard() {
           ) : (
             <div className="chart-container">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20, top: 8, bottom: 8 }}>
+                <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 12, top: 8, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E0DDD8" horizontal={false} />
                   <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} fontSize={12} />
-                  <YAxis type="category" dataKey="name" width={80} fontSize={12} tick={{ fill: '#4A4A4A' }} />
+                  <YAxis type="category" dataKey="name" width={72} fontSize={12} tick={{ fill: '#4A4A4A' }} />
                   <Tooltip
                     formatter={(value, name) => {
                       if (name === 'score') return [`${value}%`, 'Avg Score'];

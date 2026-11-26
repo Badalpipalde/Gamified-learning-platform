@@ -15,14 +15,10 @@ function VirtualLab({ question, onComplete, onFail }) {
     e.dataTransfer.setData('text/plain', item);
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const item = e.dataTransfer.getData('text/plain');
-    if (!item) return;
-
+  const testItem = (item) => {
+    if (!item || reaction) return;
     setInFlask([...inFlask, item]);
-    
-    // Check if correct
+
     if (item === question.answer) {
       setReaction('success');
       setTimeout(() => {
@@ -33,11 +29,15 @@ function VirtualLab({ question, onComplete, onFail }) {
       setTimeout(() => {
         setInFlask([]);
         setReaction(null);
-        // We let them try again instead of strict fail to encourage experimentation,
-        // or we can strictly fail them.
-        onFail(); 
+        onFail();
       }, 1500);
     }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const item = e.dataTransfer.getData('text/plain');
+    testItem(item);
   };
 
   const handleDragOver = (e) => {
@@ -45,35 +45,39 @@ function VirtualLab({ question, onComplete, onFail }) {
   };
 
   return (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h3 style={{ marginBottom: '20px' }}>Virtual Lab</h3>
-      <p style={{ marginBottom: '30px' }}>{question.question}</p>
+    <div style={{ padding: '16px', textAlign: 'center' }}>
+      <h3 style={{ marginBottom: '12px' }}>Virtual Lab</h3>
+      <p style={{ marginBottom: '24px' }}>{question.question}</p>
       
-      {/* Workbench (Draggable Items) */}
+      {/* Workbench (Draggable or Tappable Items for mobile) */}
       <div style={{
         display: 'flex',
-        gap: '15px',
+        gap: '12px',
         justifyContent: 'center',
         flexWrap: 'wrap',
-        marginBottom: '40px'
+        marginBottom: '32px'
       }}>
         {question.options?.map(opt => (
-          <div
+          <button
+            type="button"
             key={opt}
             draggable
             onDragStart={(e) => handleDragStart(e, opt)}
+            onClick={() => testItem(opt)}
             style={{
-              padding: '10px 20px',
+              padding: '12px 20px',
+              minHeight: '44px',
               background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
               color: 'white',
+              border: 'none',
               borderRadius: '8px',
-              cursor: 'grab',
+              cursor: 'pointer',
               fontWeight: 'bold',
               boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
             }}
           >
             {opt}
-          </div>
+          </button>
         ))}
       </div>
 

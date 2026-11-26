@@ -108,7 +108,7 @@ function Doubts() {
 
   return (
     <div className="page-container">
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header page-header-row">
         <div>
           <h1>My Doubts</h1>
           <p>Ask questions and get help from your teachers.</p>

@@ -90,13 +90,15 @@ function LogicMaze({ question, onComplete, onFail }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', alignItems: 'center' }}>
-      <div style={{ fontWeight: 'bold', color: 'var(--color-text)' }}>{status}</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+      <div style={{ fontWeight: 'bold', color: 'var(--color-text)', textAlign: 'center' }}>{status}</div>
       
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(5, 50px)',
-        gridTemplateRows: 'repeat(5, 50px)',
+        gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+        width: '100%',
+        maxWidth: '260px',
+        aspectRatio: '1 / 1',
         gap: '2px',
         background: 'var(--color-border)',
         padding: '2px',
@@ -112,12 +114,10 @@ function LogicMaze({ question, onComplete, onFail }) {
           return (
             <div key={`${x}-${y}`} style={{
               background: bg,
-              width: '50px',
-              height: '50px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '24px'
+              fontSize: 'clamp(16px, 5vw, 24px)'
             }}>
               {cell === 3 && !isRobotHere && '🏁'}
               {isRobotHere && '🤖'}
@@ -126,7 +126,7 @@ function LogicMaze({ question, onComplete, onFail }) {
         }))}
       </div>
 
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px' }}>
         {COMMANDS.map(cmd => (
           <button 
             key={cmd}

@@ -49,27 +49,29 @@ function WordScramble({ question, onComplete, onFail }) {
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '30px', backgroundColor: '#fff3e0', borderRadius: '16px', minHeight: '400px' }}>
-      <h2 style={{ fontSize: '1.8rem', marginBottom: '30px', color: '#e65100' }}>{question.question}</h2>
+    <div style={{ textAlign: 'center', padding: 'clamp(16px, 4vw, 30px)', backgroundColor: '#fff3e0', borderRadius: '16px', minHeight: '340px' }}>
+      <h2 style={{ fontSize: 'clamp(1.15rem, 4vw, 1.8rem)', marginBottom: '24px', color: '#e65100' }}>{question.question}</h2>
       
       {/* Answer Slots */}
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center', 
-        gap: '10px', 
-        marginBottom: '40px',
-        minHeight: '60px'
+        flexWrap: 'wrap',
+        gap: '8px', 
+        marginBottom: '32px',
+        minHeight: '48px'
       }}>
         {Array.from({ length: targetWord.length }).map((_, i) => {
           const tile = selected[i];
           return (
             <div key={i} style={{
-              width: '50px', height: '50px',
+              width: 'clamp(32px, 9vw, 50px)',
+              height: 'clamp(36px, 9vw, 50px)',
               backgroundColor: tile ? (status === 'correct' ? '#4caf50' : status === 'wrong' ? '#f44336' : '#ffb74d') : 'transparent',
               border: `2px ${tile ? 'solid' : 'dashed'} ${tile ? (status === 'correct' ? '#2e7d32' : status === 'wrong' ? '#c62828' : '#ef6c00') : '#ffcc80'}`,
               borderRadius: '8px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.5rem', fontWeight: 'bold', color: 'white',
+              fontSize: 'clamp(1rem, 4vw, 1.5rem)', fontWeight: 'bold', color: 'white',
               boxShadow: tile ? '0 4px 6px rgba(0,0,0,0.1)' : 'none',
               transition: 'background-color 0.3s'
             }}>
@@ -83,7 +85,7 @@ function WordScramble({ question, onComplete, onFail }) {
       <div style={{ 
         display: 'flex', 
         justifyContent: 'center', 
-        gap: '15px', 
+        gap: '10px', 
         flexWrap: 'wrap',
         maxWidth: '500px',
         margin: '0 auto'
@@ -95,11 +97,12 @@ function WordScramble({ question, onComplete, onFail }) {
             whileTap={!tile.isSelected ? { scale: 0.9 } : {}}
             onClick={() => handleSelect(tile)}
             style={{
-              width: '60px', height: '60px',
+              width: 'clamp(44px, 12vw, 60px)',
+              height: 'clamp(44px, 12vw, 60px)',
               backgroundColor: tile.isSelected ? '#e0e0e0' : '#4fc3f7',
               border: 'none',
               borderRadius: '12px',
-              fontSize: '1.8rem', fontWeight: 'bold', color: tile.isSelected ? '#9e9e9e' : 'white',
+              fontSize: 'clamp(1.2rem, 4vw, 1.8rem)', fontWeight: 'bold', color: tile.isSelected ? '#9e9e9e' : 'white',
               cursor: tile.isSelected ? 'default' : 'pointer',
               boxShadow: tile.isSelected ? 'none' : '0 4px 0 #0288d1',
               transform: tile.isSelected ? 'translateY(4px)' : 'none',

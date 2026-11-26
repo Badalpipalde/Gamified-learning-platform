@@ -1,19 +1,21 @@
+/* ===== Management Pages Styles (Mobile-first) ===== */
+
 .manage-page .actions-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--space-3);
   margin-bottom: var(--space-6);
 }
 
 .manage-page .search-input {
-  max-width: 280px;
+  width: 100%;
 }
 
 .manage-page .stats-row {
   display: flex;
-  gap: var(--space-4);
+  flex-direction: column;
+  gap: var(--space-3);
   margin-bottom: var(--space-6);
 }
 
@@ -21,9 +23,9 @@
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-3) var(--space-4);
   flex: 1;
-  min-width: 140px;
+  min-width: 120px;
 }
 
 .stat-card-value {
@@ -34,7 +36,7 @@
 }
 
 .stat-card-label {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   margin-top: var(--space-1);
 }
@@ -42,20 +44,32 @@
 /* Action cell in tables */
 .actions-cell {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
 }
 
-@media (max-width: 599px) {
-  .manage-page .stats-row {
-    flex-direction: column;
-  }
-
+@media (min-width: 600px) {
   .manage-page .actions-bar {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .manage-page .search-input {
-    max-width: none;
+    max-width: 280px;
+  }
+
+  .manage-page .stats-row {
+    flex-direction: row;
+    gap: var(--space-4);
+  }
+
+  .stat-card {
+    padding: var(--space-4) var(--space-5);
+    min-width: 140px;
+  }
+
+  .stat-card-label {
+    font-size: var(--font-size-sm);
   }
 }

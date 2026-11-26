@@ -48,8 +48,8 @@ function Level3({ onComplete }) {
   };
 
   return (
-    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-      <div className="card" style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="coding-level-grid">
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h3 style={{ marginBottom: '15px' }}>Character Creator</h3>
         
         <div style={{ width: '100%', height: '300px', background: '#2c3e50', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative', boxShadow: 'inset 0 4px 8px rgba(0,0,0,0.2)' }}>
@@ -73,7 +73,7 @@ function Level3({ onComplete }) {
         <div style={{ marginTop: '15px', fontWeight: 'bold', color: 'var(--color-primary-dark)', textAlign: 'center' }}>{status}</div>
       </div>
 
-      <div className="card" style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column' }}>
+      <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ marginBottom: '15px' }}>Data Types</h3>
         <div style={{ marginBottom: '15px', padding: '10px', background: 'var(--color-surface-hover)', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px' }}>
           <strong>int</strong> → Whole numbers (12, 100)<br/>

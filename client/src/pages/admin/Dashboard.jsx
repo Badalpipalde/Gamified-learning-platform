@@ -44,7 +44,7 @@ function AdminDashboard() {
       <div className="dash-grid">
         <div className="card">
           <h3>👥 Users</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-4)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-4)', justifyContent: 'space-around', marginTop: 'var(--space-4)' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-primary)' }}>{data.users.students}</div>
               <div style={{ color: 'var(--color-text-muted)' }}>Students</div>
@@ -72,7 +72,7 @@ function AdminDashboard() {
 
         <div className="card">
           <h3>📈 Engagement</h3>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 'var(--space-4)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-4)', justifyContent: 'space-around', marginTop: 'var(--space-4)' }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>{data.engagement.platformPoints}</div>
               <div style={{ color: 'var(--color-text-muted)' }}>Total Points Earned</div>

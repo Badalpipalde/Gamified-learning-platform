@@ -176,14 +176,14 @@ function StudentDashboard() {
             ) : (
               <div className="chart-container">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 20, top: 8, bottom: 8 }}>
+                  <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 12, top: 8, bottom: 8 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" horizontal={false} />
                     <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} fontSize={12} stroke="var(--color-text-muted)" />
                     <YAxis
                       type="category"
                       dataKey="name"
-                      width={80}
-                      fontSize={13}
+                      width={72}
+                      fontSize={12}
                       fontWeight={500}
                       tick={{ fill: 'var(--color-text)' }}
                       axisLine={false}

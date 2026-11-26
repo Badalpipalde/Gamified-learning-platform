@@ -36,8 +36,8 @@ function Level2({ onComplete }) {
   };
 
   return (
-    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-      <div className="card" style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="coding-level-grid">
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h3 style={{ marginBottom: '15px' }}>Treasure Storage</h3>
         <div style={{ width: '100%', height: '250px', background: 'linear-gradient(to bottom, #87CEEB, #4CAF50 80%)', borderRadius: '12px', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', bottom: '40px', left: animationPhase === 'collecting' ? '120px' : '40px', fontSize: '40px', transition: 'left 0.5s ease-in-out' }}>🤖</div>
@@ -48,13 +48,13 @@ function Level2({ onComplete }) {
             )}
           </div>
         </div>
-        <div style={{ marginTop: '20px', display: 'flex', gap: '10px' }}>
+        <div style={{ marginTop: '20px', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
           <button className="btn btn-primary" onClick={playCollectionAnimation} disabled={animationPhase !== 'idle'}>▶ Watch Action</button>
           <button className="btn btn-outline" onClick={() => { setDiamondsInWorld(0); setAnimationPhase('idle'); setCodeValue('0'); setStatus('Watch the robot collect diamonds, then store the correct amount!'); }}>Reset</button>
         </div>
-        <div style={{ marginTop: '15px', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{status}</div>
+        <div style={{ marginTop: '15px', fontWeight: 'bold', color: 'var(--color-primary-dark)', textAlign: 'center' }}>{status}</div>
       </div>
-      <div className="card" style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column' }}>
+      <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ marginBottom: '15px' }}>Computer Memory (Variables)</h3>
         <div style={{ marginBottom: '20px', padding: '15px', background: 'var(--color-surface-hover)', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
           <p style={{ fontSize: '14px', marginBottom: '10px' }}>A variable is like a box that holds a value.</p>

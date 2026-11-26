@@ -211,7 +211,7 @@ function StudentManagement() {
           <h3 style={{ marginBottom: 'var(--space-4)' }}>New Student</h3>
           {formError && <div className="auth-error">{formError}</div>}
           <form onSubmit={handleAddStudent}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
+            <div className="form-grid-2">
               <div className="form-group">
                 <label className="form-label" htmlFor="student-name">
                   Full Name

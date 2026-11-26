@@ -111,27 +111,30 @@ function MathRunner({ question, onComplete, onFail }) {
         width: '100%',
         maxWidth: '800px',
         margin: '0 auto',
-        height: 'calc(100vh - 200px)',
-        minHeight: '300px',
+        height: 'clamp(340px, 60dvh, 520px)',
         background: 'linear-gradient(to bottom, #1e3c72, #2a5298)',
         borderRadius: 'var(--radius-lg)',
         overflow: 'hidden',
         cursor: 'ew-resize',
+        touchAction: 'none',
         boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)'
       }}
     >
       {/* Target Question Display */}
       <div style={{
         position: 'absolute',
-        top: '20px',
+        top: '16px',
         left: '50%',
         transform: 'translateX(-50%)',
         background: 'rgba(255,255,255,0.9)',
-        padding: '10px 20px',
+        padding: '8px 18px',
         borderRadius: '30px',
-        fontSize: '2rem',
+        fontSize: 'clamp(1.15rem, 4.5vw, 1.8rem)',
         fontWeight: 'bold',
         color: '#333',
+        maxWidth: '90%',
+        textAlign: 'center',
+        whiteSpace: 'nowrap',
         boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
         zIndex: 10
       }}>
@@ -141,11 +144,12 @@ function MathRunner({ question, onComplete, onFail }) {
       {/* Instructions */}
       <div style={{
         position: 'absolute',
-        top: '100px',
+        top: '84px',
         width: '100%',
+        padding: '0 12px',
         textAlign: 'center',
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: '1.2rem',
+        color: 'rgba(255,255,255,0.65)',
+        fontSize: 'clamp(0.85rem, 3vw, 1.1rem)',
         pointerEvents: 'none',
         fontWeight: 'bold'
       }}>

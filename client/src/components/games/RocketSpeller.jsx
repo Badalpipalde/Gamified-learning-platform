@@ -125,15 +125,24 @@ function RocketSpeller({ question, onComplete, onFail }) {
 
   const s = state.current;
 
+  const fireBullet = () => {
+    const now = performance.now();
+    if (!s.gameOver && now - s.lastShot > 250) {
+      s.bullets.push({ id: Math.random().toString(), x: s.rocketX, y: 86 });
+      s.lastShot = now;
+    }
+  };
+
   return (
-    <div style={{ position: 'relative', height: '600px', backgroundColor: '#0b0f19', borderRadius: '16px', overflow: 'hidden', padding: '20px' }}>
-      <div style={{ color: 'white', textAlign: 'center', zIndex: 10, position: 'relative' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '10px' }}>{question.question}</h2>
-        <div style={{ fontSize: '2rem', letterSpacing: '4px', borderBottom: '2px solid white', display: 'inline-block', padding: '0 20px', minHeight: '40px', fontWeight: 'bold' }}>
-          {s.spelled.padEnd(targetWord.length, '_')}
+    <div>
+      <div style={{ position: 'relative', height: 'clamp(360px, 60dvh, 540px)', backgroundColor: '#0b0f19', borderRadius: '16px', overflow: 'hidden', padding: '16px', touchAction: 'none' }}>
+        <div style={{ color: 'white', textAlign: 'center', zIndex: 10, position: 'relative' }}>
+          <h2 style={{ fontSize: 'clamp(1.05rem, 3.5vw, 1.5rem)', marginBottom: '8px', color: 'white' }}>{question.question}</h2>
+          <div style={{ fontSize: 'clamp(1.3rem, 5vw, 2rem)', letterSpacing: '4px', borderBottom: '2px solid white', display: 'inline-block', padding: '0 14px', minHeight: '36px', fontWeight: 'bold' }}>
+            {s.spelled.padEnd(targetWord.length, '_')}
+          </div>
+          <p style={{ color: '#94a3b8', marginTop: '8px', fontSize: '0.8rem' }}>Use Arrows + Space or the touch controls below!</p>
         </div>
-        <p style={{ color: '#888', marginTop: '10px' }}>Use Left/Right Arrows to move. Space to shoot!</p>
-      </div>
 
       {/* Render Asteroids */}
       {s.asteroids.map(a => (
@@ -199,7 +208,7 @@ function RocketSpeller({ question, onComplete, onFail }) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '3rem',
+          fontSize: 'clamp(1.8rem, 6vw, 3rem)',
           fontWeight: 'bold',
           color: '#4caf50',
           zIndex: 20
@@ -207,6 +216,37 @@ function RocketSpeller({ question, onComplete, onFail }) {
           Success!
         </div>
       )}
+      </div>
+      {/* Touch Controls for Mobile */}
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '12px', touchAction: 'manipulation' }}>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onPointerDown={() => { s.keys.left = true; }}
+          onPointerUp={() => { s.keys.left = false; }}
+          onPointerLeave={() => { s.keys.left = false; }}
+          aria-label="Move Left"
+        >
+          ◀ Left
+        </button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={fireBullet}
+        >
+          🚀 Fire
+        </button>
+        <button
+          type="button"
+          className="btn btn-outline"
+          onPointerDown={() => { s.keys.right = true; }}
+          onPointerUp={() => { s.keys.right = false; }}
+          onPointerLeave={() => { s.keys.right = false; }}
+          aria-label="Move Right"
+        >
+          Right ▶
+        </button>
+      </div>
     </div>
   );
 }

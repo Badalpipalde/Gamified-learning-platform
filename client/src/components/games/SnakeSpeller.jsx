@@ -80,18 +80,24 @@ function SnakeSpeller({ question, onComplete, onFail }) {
     return () => clearInterval(tick);
   }, [targetWord, onComplete, onFail]);
 
+  const changeDir = (nx, ny) => {
+    const current = stateRef.current.dir;
+    if (nx !== 0 && current.x !== -nx) setDir({ x: nx, y: 0 });
+    if (ny !== 0 && current.y !== -ny) setDir({ x: 0, y: ny });
+  };
+
   return (
     <div style={{ textAlign: 'center', padding: '10px' }}>
-      <h2 style={{ fontSize: '1.4rem', marginBottom: '10px' }}>{question.question}</h2>
-      <div style={{ fontSize: '1.8rem', marginBottom: '20px', letterSpacing: '4px', fontWeight: 'bold' }}>
+      <h2 style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.4rem)', marginBottom: '10px' }}>{question.question}</h2>
+      <div style={{ fontSize: 'clamp(1.3rem, 5vw, 1.8rem)', marginBottom: '16px', letterSpacing: '4px', fontWeight: 'bold' }}>
         <span style={{ color: 'var(--color-primary)' }}>{spelled.padEnd(targetWord.length, '_')}</span>
       </div>
       
       <div style={{ 
         position: 'relative', 
         width: '100%', 
-        maxWidth: '350px',
-        height: '350px', 
+        maxWidth: '340px',
+        aspectRatio: '1 / 1',
         margin: '0 auto', 
         backgroundColor: '#e8f5e9',
         border: '4px solid #4caf50',
@@ -147,7 +153,18 @@ function SnakeSpeller({ question, onComplete, onFail }) {
           </div>
         )}
       </div>
-      <p style={{ marginTop: '20px', color: '#666', fontWeight: 'bold' }}>Use Arrow Keys to guide the snake to collect the letters.</p>
+      {/* Touch D-Pad for Mobile */}
+      <div className="mobile-dpad">
+        <div />
+        <button type="button" className="mobile-dpad-btn" onClick={() => changeDir(0, -1)} aria-label="Move Up">▲</button>
+        <div />
+        <button type="button" className="mobile-dpad-btn" onClick={() => changeDir(-1, 0)} aria-label="Move Left">◀</button>
+        <button type="button" className="mobile-dpad-btn" onClick={() => changeDir(0, 1)} aria-label="Move Down">▼</button>
+        <button type="button" className="mobile-dpad-btn" onClick={() => changeDir(1, 0)} aria-label="Move Right">▶</button>
+      </div>
+      <p style={{ marginTop: '14px', color: '#666', fontWeight: 'bold', fontSize: '0.85rem' }}>
+        Use Arrow Keys or the touch buttons to collect the letters.
+      </p>
     </div>
   );
 }

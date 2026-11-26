@@ -142,7 +142,7 @@ function QuizPlay() {
             </div>
           )}
 
-          <div style={{ display: 'flex', gap: 'var(--space-3)', justifyContent: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', justifyContent: 'center' }}>
             <button className="btn btn-primary" onClick={() => navigate('/student/quizzes')}>
               More Quizzes
             </button>

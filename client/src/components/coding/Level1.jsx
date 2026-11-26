@@ -77,20 +77,20 @@ function Level1({ onComplete }) {
   };
 
   return (
-    <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-      <div className="card" style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+    <div className="coding-level-grid">
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h3 style={{ marginBottom: '15px' }}>Game World</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 60px)', gap: '2px', background: 'var(--color-border)', padding: '4px', borderRadius: '12px' }}>
+        <div className="coding-world-grid">
           {grid.map((row, y) => row.map((cell, x) => (
-            <div key={`${x}-${y}`} style={{ background: cell === 1 ? '#4caf50' : cell === 3 ? '#ffeb3b' : '#8bc34a', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
+            <div key={`${x}-${y}`} className="coding-world-cell" style={{ background: cell === 1 ? '#4caf50' : cell === 3 ? '#ffeb3b' : '#8bc34a' }}>
               {cell === 1 && '🌳'}{cell === 3 && !(robotPos.x === x && robotPos.y === y) && '💎'}
               {(robotPos.x === x && robotPos.y === y) && <div style={{ transform: `rotate(${getRobotRotation(robotPos.dir)})`, transition: 'all 0.3s' }}>🤖</div>}
             </div>
           )))}
         </div>
-        <div style={{ marginTop: '20px', fontWeight: 'bold', color: 'var(--color-primary-dark)' }}>{status}</div>
+        <div style={{ marginTop: '20px', fontWeight: 'bold', color: 'var(--color-primary-dark)', textAlign: 'center' }}>{status}</div>
       </div>
-      <div className="card" style={{ flex: '1', minWidth: '300px', display: 'flex', flexDirection: 'column' }}>
+      <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
         <h3 style={{ marginBottom: '15px' }}>C Code Editor</h3>
         <div style={{ marginBottom: '20px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {availableCommands.map(cmd => (

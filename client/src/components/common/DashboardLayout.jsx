@@ -12,16 +12,12 @@ import {
   HelpCircle,
   Link as LinkIcon,
   Code,
-  User,
   Users,
   Mail,
   GraduationCap,
   School,
-  BookOpen,
-  LogOut,
-  Settings,
-  Search,
-  Bell
+  Bell,
+  X
 } from 'lucide-react';
 
 // Navigation configs per role
@@ -29,7 +25,7 @@ const navConfig = {
   student: [
     { label: 'Dashboard', path: '/student', icon: <LayoutDashboard size={20} />, end: true },
     { label: 'Quizzes', path: '/student/quizzes', icon: <FileEdit size={20} /> },
-    { label: 'Coding ', path: '/student/coding', icon: <Code size={20} /> }, // Repurposed for now
+    { label: 'Coding', path: '/student/coding', icon: <Code size={20} /> },
     { label: 'Mini Games', path: '/student/games', icon: <Gamepad2 size={20} /> },
     { label: 'Buzz AI', path: '/student/buzz-ai', icon: <Bot size={20} /> },
     { label: 'Leaderboard', path: '/student/leaderboard', icon: <Trophy size={20} /> },
@@ -76,11 +72,11 @@ function DashboardLayout() {
   const links = navConfig[user?.role] || [];
   const initials = user?.name
     ? user.name
-      .split(' ')
-      .map((w) => w[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
+        .split(' ')
+        .map((w) => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
     : '?';
 
   const handleLogout = () => {
@@ -100,8 +96,20 @@ function DashboardLayout() {
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="sidebar-brand" style={{ display: 'none' }}>
-          {/* Logo moved to navbar */}
+        <div className="sidebar-mobile-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+            <div className="sidebar-brand-logo">
+              <img src={logo} alt="VidyaQuest" />
+            </div>
+            <span className="sidebar-brand-name">VidyaQuest</span>
+          </div>
+          <button
+            className="sidebar-close-btn"
+            onClick={closeSidebar}
+            aria-label="Close sidebar"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">
@@ -120,69 +128,52 @@ function DashboardLayout() {
               {link.label}
             </NavLink>
           ))}
-
         </nav>
 
-        {/* Footer hidden because user info is in navbar */}
-        <div className="sidebar-footer" style={{ display: 'none' }}>
-        </div>
+        <div className="sidebar-footer" style={{ display: 'none' }} />
       </aside>
 
       {/* Top navbar */}
       <header className="navbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginRight: 'auto' }}>
+        <div className="navbar-left">
           <button
             className="navbar-toggle"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label="Toggle sidebar"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
           </button>
-          
-          <div className="sidebar-brand-logo" style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <img src={logo} alt="VidyaQuest" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+
+          <div className="sidebar-brand-logo">
+            <img src={logo} alt="VidyaQuest" />
           </div>
-          <span className="sidebar-brand-name" style={{ fontFamily: 'Outfit, sans-serif', fontSize: '20px', fontWeight: 'bold', color: 'var(--color-primary)' }}>VidyaQuest</span>
+          <span className="sidebar-brand-name">VidyaQuest</span>
         </div>
 
-        {/* Search removed as per user request */}
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-6)' }}>
-          {/* Email/Mail icon removed as per user request */}
-          <button style={{ background: 'none', border: '1px solid var(--color-border-light)', color: 'var(--color-text-secondary)', cursor: 'pointer', position: 'relative', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Bell size={20} />
-            <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '16px', height: '16px', background: 'var(--color-primary)', color: 'white', fontSize: '10px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>6</span>
+        <div className="navbar-actions">
+          <button className="navbar-bell-btn" aria-label="Notifications">
+            <Bell size={18} />
+            <span className="navbar-bell-badge">6</span>
           </button>
 
-          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', background: 'none', border: 'none', cursor: 'pointer', padding: '0' }}
+              className="navbar-profile-btn"
+              aria-label="Account menu"
             >
-              <div className="sidebar-avatar" style={{ width: '40px', height: '40px', fontSize: '14px', borderRadius: '50%' }}>{initials}</div>
-              <div style={{ textAlign: 'left', display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontWeight: '600', fontSize: '14px', color: 'var(--color-text)' }}>{user?.name || 'Cora Richards'}</span>
-                <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{user?.email || 'cora.r@edu.com'}</span>
+              <div className="sidebar-avatar">{initials}</div>
+              <div className="navbar-user-meta">
+                <span className="navbar-user-name">{user?.name || 'Student'}</span>
+                <span className="navbar-user-email">{user?.email || ''}</span>
               </div>
             </button>
 
             {profileOpen && (
-              <div style={{
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: 'var(--space-2)',
-                background: 'var(--color-surface)',
-                border: '1px solid var(--color-border)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-lg)',
-                minWidth: '200px',
-                padding: 'var(--space-2)',
-                zIndex: 'var(--z-dropdown)'
-              }}>
+              <div className="navbar-profile-dropdown">
                 <div style={{ padding: 'var(--space-2) var(--space-3)', borderBottom: '1px solid var(--color-border-light)', marginBottom: 'var(--space-2)' }}>
                   <div style={{ fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>{user?.name}</div>
-                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{user?.email}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', wordBreak: 'break-all' }}>{user?.email}</div>
                 </div>
                 <button
                   onClick={() => { setProfileOpen(false); navigate(`/${user?.role}/profile`); }}
@@ -207,7 +198,7 @@ function DashboardLayout() {
       </header>
 
       {/* Main content */}
-      <main className="layout-main" style={{ display: 'flex', flexDirection: 'column' }}>
+      <main className="layout-main">
         {isOffline && (
           <div style={{
             background: 'var(--color-danger-bg)',
@@ -232,7 +223,7 @@ function DashboardLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+              style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}
             >
               <div style={{ flex: 1, overflowY: 'auto' }}>
                 <Outlet />

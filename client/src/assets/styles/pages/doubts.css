@@ -1,3 +1,5 @@
+/* ===== Doubts Styles (Mobile-first) ===== */
+
 .doubts-container {
   display: flex;
   flex-direction: column;
@@ -8,7 +10,7 @@
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);
-  padding: var(--space-5);
+  padding: var(--space-4);
   transition: box-shadow var(--transition-fast);
 }
 
@@ -18,24 +20,25 @@
 
 .doubt-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
   align-items: flex-start;
+  justify-content: space-between;
   margin-bottom: var(--space-3);
-  gap: var(--space-4);
+  gap: var(--space-2);
 }
 
 .doubt-title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text);
   margin-bottom: var(--space-1);
 }
 
 .doubt-meta {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   display: flex;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-items: center;
   flex-wrap: wrap;
 }
@@ -46,6 +49,7 @@
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
+  flex-shrink: 0;
 }
 
 .doubt-status.open {
@@ -67,8 +71,9 @@
   font-size: var(--font-size-base);
   color: var(--color-text);
   line-height: var(--line-height-normal);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
   white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .replies-section {
@@ -92,7 +97,9 @@
 .reply-header {
   display: flex;
   justify-content: space-between;
-  font-size: var(--font-size-sm);
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
   margin-bottom: var(--space-2);
 }
 
@@ -111,15 +118,50 @@
 .reply-text {
   font-size: var(--font-size-sm);
   white-space: pre-wrap;
+  overflow-wrap: break-word;
 }
 
 .reply-form {
   display: flex;
-  gap: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-2);
   margin-top: var(--space-4);
 }
 
 .reply-input {
   flex: 1;
-  min-height: 40px;
+  min-width: 0;
+  min-height: 44px;
+}
+
+@media (min-width: 480px) {
+  .reply-form {
+    flex-direction: row;
+    gap: var(--space-3);
+  }
+}
+
+@media (min-width: 600px) {
+  .doubt-card {
+    padding: var(--space-5);
+  }
+
+  .doubt-header {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--space-4);
+  }
+
+  .doubt-title {
+    font-size: var(--font-size-lg);
+  }
+
+  .doubt-meta {
+    font-size: var(--font-size-sm);
+    gap: var(--space-3);
+  }
+
+  .reply-header {
+    font-size: var(--font-size-sm);
+  }
 }

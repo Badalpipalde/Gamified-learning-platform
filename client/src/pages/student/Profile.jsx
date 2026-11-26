@@ -46,7 +46,7 @@ function Profile() {
 
   return (
     <div className="page-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
-      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="page-header page-header-row">
         <div>
           <h1>👤 My Profile</h1>
           <p>View your personal information and learning stats.</p>
@@ -56,7 +56,7 @@ function Profile() {
         </button>
       </div>
 
-      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px', marginBottom: '20px', background: 'var(--color-surface)' }}>
+      <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: 'clamp(20px, 5vw, 40px) 16px', marginBottom: '20px', background: 'var(--color-surface)' }}>
         
         {/* Avatar */}
         <div style={{
@@ -120,23 +120,21 @@ function Profile() {
       </div>
 
       {/* Gamification Stats Card */}
-      <div className="card" style={{ display: 'flex', gap: '20px', justifyContent: 'space-around', padding: '30px' }}>
+      <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '16px', padding: '20px' }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🎯</div>
-          <h3 style={{ fontSize: '1.5rem', margin: 0, color: 'var(--color-text)' }}>{displayUser?.quizzesTaken || 0}</h3>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Quizzes Taken</div>
+          <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🎯</div>
+          <h3 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', margin: 0, color: 'var(--color-text)' }}>{displayUser?.quizzesTaken || 0}</h3>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Quizzes Taken</div>
         </div>
-        <div style={{ width: '1px', background: 'var(--color-border)' }}></div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🔥</div>
-          <h3 style={{ fontSize: '1.5rem', margin: 0, color: 'var(--color-text)' }}>{displayUser?.streak || 0} Days</h3>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Current Streak</div>
+          <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔥</div>
+          <h3 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', margin: 0, color: 'var(--color-text)' }}>{displayUser?.streak || 0} Days</h3>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Current Streak</div>
         </div>
-        <div style={{ width: '1px', background: 'var(--color-border)' }}></div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '10px' }}>🏆</div>
-          <h3 style={{ fontSize: '1.5rem', margin: 0, color: 'var(--color-text)' }}>{displayUser?.rank || 'Unranked'}</h3>
-          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Global Rank</div>
+          <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🏆</div>
+          <h3 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.5rem)', margin: 0, color: 'var(--color-text)' }}>{displayUser?.rank || 'Unranked'}</h3>
+          <div style={{ color: 'var(--color-text-muted)', fontSize: '0.85rem' }}>Global Rank</div>
         </div>
       </div>
     </div>
