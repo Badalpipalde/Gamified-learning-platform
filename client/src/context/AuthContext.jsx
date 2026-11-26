@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
+import { invalidateCache } from '../utils/cache';
 
 const AuthContext = createContext(null);
 
@@ -24,6 +25,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
+    invalidateCache();
     const { data } = await api.post('/auth/login', { email, password });
     localStorage.setItem('vq_token', data.token);
     localStorage.setItem('vq_user', JSON.stringify(data));
@@ -32,6 +34,7 @@ export function AuthProvider({ children }) {
   };
 
   const register = async (userData) => {
+    invalidateCache();
     const { data } = await api.post('/auth/register', userData);
     localStorage.setItem('vq_token', data.token);
     localStorage.setItem('vq_user', JSON.stringify(data));
@@ -40,6 +43,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
+    invalidateCache();
     localStorage.removeItem('vq_token');
     localStorage.removeItem('vq_user');
     setUser(null);

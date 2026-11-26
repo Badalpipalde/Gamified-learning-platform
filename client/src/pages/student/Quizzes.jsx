@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/quiz.css';
 
 function LevelDots({ level }) {
@@ -14,33 +15,66 @@ function LevelDots({ level }) {
 }
 
 function Quizzes() {
-  const [subjects, setSubjects] = useState([]);
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [quizzes, setQuizzes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const cachedSubjects = getCached('quizzes:subjects', 120_000);
+  const cachedSelected = getCached('quizzes:selectedSubject', 120_000)?.data || null;
+  const initialQuizzes = cachedSelected
+    ? getCached(`quizzes:list:${cachedSelected.slug}`, 60_000)?.data || []
+    : [];
+
+  const [subjects, setSubjects] = useState(cachedSubjects?.data || []);
+  const [selectedSubject, setSelectedSubject] = useState(cachedSelected);
+  const [quizzes, setQuizzes] = useState(initialQuizzes);
+  const [loading, setLoading] = useState(!cachedSubjects?.data);
   const [quizLoading, setQuizLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
+    let active = true;
     const fetchSubjects = async () => {
       try {
         const { data } = await api.get('/quizzes/subjects');
+        if (!active) return;
         setSubjects(data);
+        setCached('quizzes:subjects', data);
       } catch (err) {
         console.error('Failed to fetch subjects:', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchSubjects();
+
+    if (cachedSelected) {
+      api
+        .get(`/quizzes?subject=${cachedSelected.slug}`)
+        .then(({ data }) => {
+          if (!active) return;
+          setQuizzes(data);
+          setCached(`quizzes:list:${cachedSelected.slug}`, data);
+        })
+        .catch((err) => console.error('Failed to refresh quizzes:', err));
+    }
+
+    return () => { active = false; };
   }, []);
 
   const selectSubject = async (subject) => {
     setSelectedSubject(subject);
-    setQuizLoading(true);
+    setCached('quizzes:selectedSubject', subject);
+
+    const cacheKey = `quizzes:list:${subject.slug}`;
+    const cached = getCached(cacheKey, 60_000);
+    if (cached?.data) {
+      setQuizzes(cached.data);
+      setQuizLoading(false);
+    } else {
+      setQuizLoading(true);
+    }
+
     try {
       const { data } = await api.get(`/quizzes?subject=${subject.slug}`);
       setQuizzes(data);
+      setCached(cacheKey, data);
     } catch (err) {
       console.error('Failed to fetch quizzes:', err);
     } finally {

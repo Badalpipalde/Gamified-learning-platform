@@ -16,17 +16,22 @@ const getStudentDashboard = async (req, res) => {
 
     const [user, recentAttempts, subjectProgress, quizzesCompleted, pointsBySource] = await Promise.all([
       // User with badges
-      User.findById(userId).populate('badges'),
+      User.findById(userId)
+        .select('totalPoints level streak badges')
+        .populate('badges')
+        .lean(),
 
       // Recent attempts
       Attempt.find({ userId })
+        .select('quizId score totalQuestions pointsEarned createdAt')
         .populate({
           path: 'quizId',
           select: 'title level subjectId',
           populate: { path: 'subjectId', select: 'name slug icon' },
         })
         .sort({ createdAt: -1 })
-        .limit(10),
+        .limit(10)
+        .lean(),
 
       // Subject-wise progress (avg score per subject)
       Attempt.aggregate([
@@ -36,6 +41,7 @@ const getStudentDashboard = async (req, res) => {
             from: 'quizzes',
             localField: 'quizId',
             foreignField: '_id',
+            pipeline: [{ $project: { subjectId: 1 } }],
             as: 'quiz',
           },
         },
@@ -45,6 +51,7 @@ const getStudentDashboard = async (req, res) => {
             from: 'subjects',
             localField: 'quiz.subjectId',
             foreignField: '_id',
+            pipeline: [{ $project: { name: 1, icon: 1 } }],
             as: 'subject',
           },
         },
@@ -109,7 +116,9 @@ const getParentDashboard = async (req, res) => {
     const parentId = req.user._id;
 
     // Get linked children
-    const links = await ParentLink.find({ parentId, active: true });
+    const links = await ParentLink.find({ parentId, active: true })
+      .select('studentId')
+      .lean();
     const childIds = links.map((l) => l.studentId);
 
     if (childIds.length === 0) {
@@ -122,7 +131,8 @@ const getParentDashboard = async (req, res) => {
         const child = await User.findById(childId)
           .select('name rollNo classId totalPoints level streak badges active')
           .populate('classId', 'name section')
-          .populate('badges');
+          .populate('badges')
+          .lean();
 
         if (!child || !child.active) return null;
 
@@ -130,13 +140,15 @@ const getParentDashboard = async (req, res) => {
         const [recentAttempts, subjectProgress, quizzesCompleted] = await Promise.all([
           // Recent attempts
           Attempt.find({ userId: childId })
+            .select('quizId score totalQuestions pointsEarned createdAt')
             .populate({
               path: 'quizId',
               select: 'title level',
               populate: { path: 'subjectId', select: 'name icon' },
             })
             .sort({ createdAt: -1 })
-            .limit(5),
+            .limit(5)
+            .lean(),
 
           // Subject progress
           Attempt.aggregate([
@@ -146,6 +158,7 @@ const getParentDashboard = async (req, res) => {
                 from: 'quizzes',
                 localField: 'quizId',
                 foreignField: '_id',
+                pipeline: [{ $project: { subjectId: 1 } }],
                 as: 'quiz',
               },
             },
@@ -155,6 +168,7 @@ const getParentDashboard = async (req, res) => {
                 from: 'subjects',
                 localField: 'quiz.subjectId',
                 foreignField: '_id',
+                pipeline: [{ $project: { name: 1, icon: 1 } }],
                 as: 'subject',
               },
             },
@@ -221,7 +235,7 @@ const getTeacherDashboard = async (req, res) => {
     const teacherId = req.user._id;
 
     // Get teacher's classes
-    const classes = await Class.find({ teacherId });
+    const classes = await Class.find({ teacherId }).select('name section').lean();
 
     if (classes.length === 0) {
       return res.json({ classes: [], students: [], topPerformers: [], subjectStats: [] });
@@ -235,7 +249,8 @@ const getTeacherDashboard = async (req, res) => {
       role: 'student',
     })
       .select('name rollNo classId totalPoints level streak active')
-      .sort({ totalPoints: -1 });
+      .sort({ totalPoints: -1 })
+      .lean();
 
     const activeStudents = students.filter((s) => s.active);
     const studentIds = activeStudents.map((s) => s._id);
@@ -266,6 +281,7 @@ const getTeacherDashboard = async (req, res) => {
             from: 'quizzes',
             localField: 'quizId',
             foreignField: '_id',
+            pipeline: [{ $project: { subjectId: 1 } }],
             as: 'quiz',
           },
         },
@@ -275,6 +291,7 @@ const getTeacherDashboard = async (req, res) => {
             from: 'subjects',
             localField: 'quiz.subjectId',
             foreignField: '_id',
+            pipeline: [{ $project: { name: 1, icon: 1 } }],
             as: 'subject',
           },
         },

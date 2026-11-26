@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
 import api from '../../services/api';
+import { invalidateCache } from '../../utils/cache';
 import '../../assets/styles/pages/quiz.css';
 
 const LETTERS = ['A', 'B', 'C', 'D'];
@@ -60,6 +61,8 @@ function QuizPlay() {
         answers,
         timeTaken,
       });
+      invalidateCache('dashboard:');
+      invalidateCache('quizzes:list:');
       setResults(data);
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to submit quiz');

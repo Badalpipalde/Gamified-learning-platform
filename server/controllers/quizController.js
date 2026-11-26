@@ -1,13 +1,29 @@
 const Subject = require('../models/Subject');
 const Quiz = require('../models/Quiz');
 const Question = require('../models/Question');
+const Attempt = require('../models/Attempt');
+
+const SUBJECTS_CACHE_TTL_MS = 60_000;
+let subjectsCache = { data: null, expiresAt: 0 };
+
+async function fetchSubjectsCached() {
+  if (subjectsCache.data && subjectsCache.expiresAt > Date.now()) {
+    return subjectsCache.data;
+  }
+  const subjects = await Subject.find().sort({ order: 1 }).lean();
+  subjectsCache = {
+    data: subjects,
+    expiresAt: Date.now() + SUBJECTS_CACHE_TTL_MS,
+  };
+  return subjects;
+}
 
 // @desc    Get all subjects
-// @route   GET /api/subjects
+// @route   GET /api/quizzes/subjects
 // @access  Private
 const getSubjects = async (req, res) => {
   try {
-    const subjects = await Subject.find().sort({ order: 1 });
+    const subjects = await fetchSubjectsCached();
     res.json(subjects);
   } catch (err) {
     console.error('GetSubjects error:', err);
@@ -22,46 +38,76 @@ const getQuizzes = async (req, res) => {
   try {
     const { subject, level } = req.query;
     const filter = {};
+    let resolvedSubject = null;
 
     if (subject) {
-      const subj = await Subject.findOne({ slug: subject });
-      if (!subj) return res.status(404).json({ message: 'Subject not found' });
-      filter.subjectId = subj._id;
+      const subjects = await fetchSubjectsCached();
+      resolvedSubject = subjects.find((s) => s.slug === subject.toLowerCase());
+      if (!resolvedSubject) {
+        return res.status(404).json({ message: 'Subject not found' });
+      }
+      filter.subjectId = resolvedSubject._id;
     }
 
     if (level) {
       filter.level = parseInt(level, 10);
     }
 
-    const quizzes = await Quiz.find(filter)
-      .populate('subjectId', 'name slug icon')
-      .sort({ level: 1, createdAt: 1 });
+    const quizQuery = resolvedSubject
+      ? Quiz.find(filter).sort({ level: 1, createdAt: 1 }).lean()
+      : Quiz.find(filter)
+          .populate('subjectId', 'name slug icon')
+          .sort({ level: 1, createdAt: 1 })
+          .lean();
 
-    // If user is a student, attach their attempt info
     if (req.user.role === 'student') {
-      const Attempt = require('../models/Attempt');
-      const attempts = await Attempt.find({ userId: req.user._id })
-        .select('quizId score totalQuestions')
-        .lean();
+      const [quizzes, attempts] = await Promise.all([
+        quizQuery,
+        Attempt.find({ userId: req.user._id })
+          .select('quizId score totalQuestions')
+          .lean(),
+      ]);
 
       const attemptMap = {};
-      attempts.forEach((a) => {
+      for (const a of attempts) {
         const key = a.quizId.toString();
         if (!attemptMap[key] || a.score > attemptMap[key].score) {
           attemptMap[key] = a;
         }
-      });
+      }
+
+      const subjectSummary = resolvedSubject
+        ? {
+            _id: resolvedSubject._id,
+            name: resolvedSubject.name,
+            slug: resolvedSubject.slug,
+            icon: resolvedSubject.icon,
+          }
+        : null;
 
       const quizzesWithAttempts = quizzes.map((q) => {
-        const qObj = q.toObject();
         const attempt = attemptMap[q._id.toString()];
-        qObj.bestScore = attempt ? attempt.score : null;
-        qObj.bestTotal = attempt ? attempt.totalQuestions : null;
-        qObj.attempted = !!attempt;
-        return qObj;
+        return {
+          ...q,
+          ...(subjectSummary ? { subjectId: subjectSummary } : {}),
+          bestScore: attempt ? attempt.score : null,
+          bestTotal: attempt ? attempt.totalQuestions : null,
+          attempted: !!attempt,
+        };
       });
 
       return res.json(quizzesWithAttempts);
+    }
+
+    const quizzes = await quizQuery;
+    if (resolvedSubject) {
+      const subjectSummary = {
+        _id: resolvedSubject._id,
+        name: resolvedSubject.name,
+        slug: resolvedSubject.slug,
+        icon: resolvedSubject.icon,
+      };
+      return res.json(quizzes.map((q) => ({ ...q, subjectId: subjectSummary })));
     }
 
     res.json(quizzes);
@@ -76,14 +122,14 @@ const getQuizzes = async (req, res) => {
 // @access  Private
 const getQuiz = async (req, res) => {
   try {
-    const quiz = await Quiz.findById(req.params.id)
-      .populate('subjectId', 'name slug icon');
+    const questionSelect = req.user.role === 'student' ? '-correctIndex -explanation' : '';
+
+    const [quiz, questions] = await Promise.all([
+      Quiz.findById(req.params.id).populate('subjectId', 'name slug icon').lean(),
+      Question.find({ quizId: req.params.id }).select(questionSelect).lean(),
+    ]);
 
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
-
-    const questions = await Question.find({ quizId: quiz._id })
-      .select(req.user.role === 'student' ? '-correctIndex -explanation' : '')
-      .lean();
 
     res.json({ quiz, questions });
   } catch (err) {
@@ -101,6 +147,7 @@ const createSubject = async (req, res) => {
   try {
     const { name, slug, icon, order } = req.body;
     const subject = await Subject.create({ name, slug, icon, order });
+    subjectsCache = { data: null, expiresAt: 0 };
     res.status(201).json(subject);
   } catch (err) {
     if (err.code === 11000) {
@@ -118,7 +165,7 @@ const createQuiz = async (req, res) => {
   try {
     const { subjectId, title, level, questions } = req.body;
 
-    const subject = await Subject.findById(subjectId);
+    const subject = await Subject.findById(subjectId).lean();
     if (!subject) return res.status(400).json({ message: 'Subject not found' });
 
     const quiz = await Quiz.create({
@@ -151,15 +198,16 @@ const createQuiz = async (req, res) => {
 // @access  Private/Admin
 const getSubjectsAdmin = async (req, res) => {
   try {
-    const subjects = await Subject.find().sort({ order: 1 });
+    const [subjects, counts] = await Promise.all([
+      Subject.find().sort({ order: 1 }).lean(),
+      Quiz.aggregate([{ $group: { _id: '$subjectId', count: { $sum: 1 } } }]),
+    ]);
 
-    // Add quiz count per subject
-    const subjectsWithCounts = await Promise.all(
-      subjects.map(async (s) => {
-        const count = await Quiz.countDocuments({ subjectId: s._id });
-        return { ...s.toObject(), quizCount: count };
-      })
-    );
+    const countMap = new Map(counts.map((c) => [c._id.toString(), c.count]));
+    const subjectsWithCounts = subjects.map((s) => ({
+      ...s,
+      quizCount: countMap.get(s._id.toString()) || 0,
+    }));
 
     res.json(subjectsWithCounts);
   } catch (err) {
@@ -175,7 +223,8 @@ const getQuizzesAdmin = async (req, res) => {
   try {
     const quizzes = await Quiz.find()
       .populate('subjectId', 'name slug icon')
-      .sort({ subjectId: 1, level: 1 });
+      .sort({ subjectId: 1, level: 1 })
+      .lean();
     res.json(quizzes);
   } catch (err) {
     console.error('GetQuizzesAdmin error:', err);

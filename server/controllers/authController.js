@@ -124,10 +124,9 @@ const updateLanguage = async (req, res) => {
       return res.status(400).json({ message: 'Invalid language' });
     }
 
-    req.user.language = language;
-    await req.user.save();
+    await User.findByIdAndUpdate(req.user._id, { language });
 
-    res.json({ language: req.user.language });
+    res.json({ language });
   } catch (err) {
     console.error('UpdateLanguage error:', err);
     res.status(500).json({ message: 'Server error' });

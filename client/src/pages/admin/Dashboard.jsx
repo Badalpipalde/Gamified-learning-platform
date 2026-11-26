@@ -1,23 +1,29 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 
 function AdminDashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('dashboard:admin', 60_000);
+  const [data, setData] = useState(cached?.data || null);
+  const [loading, setLoading] = useState(!cached?.data);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let active = true;
     const fetchDashboard = async () => {
       try {
         const res = await api.get('/dashboard/admin');
+        if (!active) return;
         setData(res.data);
+        setCached('dashboard:admin', res.data);
       } catch (err) {
-        setError('Failed to load dashboard data');
+        if (active && !cached?.data) setError('Failed to load dashboard data');
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchDashboard();
+    return () => { active = false; };
   }, []);
 
   if (loading) {

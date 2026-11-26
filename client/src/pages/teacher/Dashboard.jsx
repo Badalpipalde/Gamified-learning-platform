@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/dashboard.css';
 
 const BAR_COLORS = ['#C0392B', '#E8A317', '#27AE60', '#0F5132', '#2980B9', '#8E44AD'];
@@ -10,21 +11,26 @@ const BAR_COLORS = ['#C0392B', '#E8A317', '#27AE60', '#0F5132', '#2980B9', '#8E4
 function TeacherDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('dashboard:teacher', 60_000);
+  const [data, setData] = useState(cached?.data || null);
+  const [loading, setLoading] = useState(!cached?.data);
 
   useEffect(() => {
+    let active = true;
     const fetchDashboard = async () => {
       try {
         const { data: d } = await api.get('/dashboard/teacher');
+        if (!active) return;
         setData(d);
+        setCached('dashboard:teacher', d);
       } catch (err) {
         console.error('Dashboard error:', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchDashboard();
+    return () => { active = false; };
   }, []);
 
   if (loading) {

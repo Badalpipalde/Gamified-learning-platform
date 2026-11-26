@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import '../../assets/styles/pages/dashboard.css';
 
 const BAR_COLORS = ['#0F5132', '#1A7A4C', '#27AE60', '#E8A317', '#2980B9', '#C0392B'];
@@ -16,22 +17,27 @@ function timeAgo(date) {
 }
 
 function ParentDashboard() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('dashboard:parent', 60_000);
+  const [data, setData] = useState(cached?.data || null);
+  const [loading, setLoading] = useState(!cached?.data);
   const [selectedChild, setSelectedChild] = useState(0);
 
   useEffect(() => {
+    let active = true;
     const fetchDashboard = async () => {
       try {
         const { data: d } = await api.get('/dashboard/parent');
+        if (!active) return;
         setData(d);
+        setCached('dashboard:parent', d);
       } catch (err) {
         console.error('Dashboard error:', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchDashboard();
+    return () => { active = false; };
   }, []);
 
   if (loading) {

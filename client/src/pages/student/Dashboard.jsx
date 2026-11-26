@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
+import { getCached, setCached } from '../../utils/cache';
 import { Flame, Star, Trophy, BookOpen, Clock, ChevronRight } from 'lucide-react';
 import '../../assets/styles/pages/dashboard.css';
 
@@ -21,21 +22,26 @@ function timeAgo(date) {
 function StudentDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cached = getCached('dashboard:student', 60_000);
+  const [data, setData] = useState(cached?.data || null);
+  const [loading, setLoading] = useState(!cached?.data);
 
   useEffect(() => {
+    let active = true;
     const fetchDashboard = async () => {
       try {
         const { data: d } = await api.get('/dashboard/student');
+        if (!active) return;
         setData(d);
+        setCached('dashboard:student', d);
       } catch (err) {
         console.error('Dashboard error:', err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
     fetchDashboard();
+    return () => { active = false; };
   }, []);
 
   if (loading) {
