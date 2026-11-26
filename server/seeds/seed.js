@@ -338,6 +338,32 @@ const seedDB = async () => {
         correctOrder: [1, 0, 2], 
         xp: 20 
       },
+
+      // 7. Virtual Lab (Science)
+      {
+        subjectSlug: 'science',
+        gameSlug: 'virtual-lab',
+        question: 'Neutralize Vinegar (Acid) in the beaker! Which substance balances it?',
+        options: ['Baking Soda', 'Lemon Juice', 'Salt Water', 'Hydrochloric Acid'],
+        answer: 'Baking Soda',
+        xp: 30,
+      },
+      {
+        subjectSlug: 'science',
+        gameSlug: 'virtual-lab',
+        question: 'Turn red litmus paper BLUE! Drop a base into the flask:',
+        options: ['Soap Solution', 'Orange Juice', 'Vinegar', 'Pure Water'],
+        answer: 'Soap Solution',
+        xp: 30,
+      },
+      {
+        subjectSlug: 'science',
+        gameSlug: 'virtual-lab',
+        question: 'Test for Starch! Which reagent turns starch solution dark blue-black?',
+        options: ['Iodine Solution', 'Sugar Syrup', 'Cooking Oil', 'Carbonated Water'],
+        answer: 'Iodine Solution',
+        xp: 30,
+      },
     ]);
     console.log('Game questions created.');
 

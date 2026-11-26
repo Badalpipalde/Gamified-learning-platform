@@ -96,9 +96,38 @@ function GameEngine() {
       { id: 3, question: "Which bones protect your lungs?", answer: "Ribcage", xp: 15, options: ["Skull", "Spine", "Ribcage", "Pelvis"] }
     ],
     'virtual-lab': [
-      { id: 1, question: "Mix chemicals to see reaction", answer: "Result", xp: 30 },
-      { id: 2, question: "Observe the cell structure", answer: "Nucleus found", xp: 30 },
-      { id: 3, question: "Measure the liquid volume", answer: "100ml", xp: 30 }
+      {
+        id: 1,
+        question: "Neutralize Vinegar (Acid) in the beaker! Which substance balances it?",
+        options: ["Baking Soda", "Lemon Juice", "Salt Water", "Hydrochloric Acid"],
+        answer: "Baking Soda",
+        reactionLabel: "Fizzing CO₂ bubbles! Acid neutralized!",
+        xp: 30
+      },
+      {
+        id: 2,
+        question: "Turn red litmus paper BLUE! Drop a base into the flask:",
+        options: ["Soap Solution", "Orange Juice", "Vinegar", "Pure Water"],
+        answer: "Soap Solution",
+        reactionLabel: "Litmus turned Blue! Alkaline reaction!",
+        xp: 30
+      },
+      {
+        id: 3,
+        question: "Test for Starch! Which reagent turns starch solution dark blue-black?",
+        options: ["Iodine Solution", "Sugar Syrup", "Cooking Oil", "Carbonated Water"],
+        answer: "Iodine Solution",
+        reactionLabel: "Deep Blue-Black color! Starch confirmed!",
+        xp: 30
+      },
+      {
+        id: 4,
+        question: "Fuel Photosynthesis in the leaf flask! Which gas is absorbed?",
+        options: ["Carbon Dioxide (CO₂)", "Helium (He)", "Neon (Ne)", "Nitrogen (N₂)"],
+        answer: "Carbon Dioxide (CO₂)",
+        reactionLabel: "Oxygen released! Photosynthesis active!",
+        xp: 30
+      }
     ],
     'word-scramble': [
       { id: 1, question: "Spell the word for 'a round fruit with red or green skin'", answer: "APPLE", xp: 20 },
@@ -297,6 +326,7 @@ function GameEngine() {
       case 'virtual-lab':
         return (
           <VirtualLab
+            key={currentQ.id || currentQ._id || currentIndex}
             question={currentQ}
             onComplete={() => {
               setXpEarned(prev => prev + currentQ.xp);
