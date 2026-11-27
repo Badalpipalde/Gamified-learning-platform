@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 function buildJumbledLetters(targetWord) {
@@ -21,13 +21,6 @@ function WordScramble({ question, onComplete, onFail }) {
   const [jumbled, setJumbled] = useState(() => buildJumbledLetters(targetWord));
   const [selected, setSelected] = useState([]);
   const [status, setStatus] = useState('playing'); // playing, correct, wrong
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
 
   const handleSelect = (tile) => {
     if (tile.isSelected || status !== 'playing') return;
@@ -40,10 +33,10 @@ function WordScramble({ question, onComplete, onFail }) {
       const spelled = newSelected.map((t) => t.char).join('');
       if (spelled === targetWord) {
         setStatus('correct');
-        timerRef.current = setTimeout(onComplete, 1000);
+        onComplete();
       } else {
         setStatus('wrong');
-        timerRef.current = setTimeout(onFail, 1100);
+        onFail();
       }
     }
   };

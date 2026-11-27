@@ -46,6 +46,7 @@ function LogicMaze({ question, onComplete }) {
   const [robotPos, setRobotPos] = useState(startPos);
   const [program, setProgram] = useState([]);
   const [isRunning, setIsRunning] = useState(false);
+  const [hasWon, setHasWon] = useState(false);
   const [status, setStatus] = useState(question?.question || 'Build your program to reach the flag!');
   const mountedRef = useRef(true);
   const timersRef = useRef([]);
@@ -66,24 +67,24 @@ function LogicMaze({ question, onComplete }) {
     });
 
   const addCommand = (cmd) => {
-    if (isRunning) return;
+    if (isRunning || hasWon) return;
     setProgram((prev) => [...prev, cmd]);
   };
 
   const removeCommand = (index) => {
-    if (isRunning) return;
+    if (isRunning || hasWon) return;
     setProgram((prev) => prev.filter((_, i) => i !== index));
   };
 
   const clearProgram = () => {
-    if (isRunning) return;
+    if (isRunning || hasWon) return;
     setProgram([]);
     setRobotPos(startPos);
     setStatus('Build your program to reach the flag!');
   };
 
   const runProgram = async () => {
-    if (program.length === 0 || isRunning) return;
+    if (program.length === 0 || isRunning || hasWon) return;
     setIsRunning(true);
     setStatus('Running program...');
 
@@ -117,13 +118,14 @@ function LogicMaze({ question, onComplete }) {
       }
     }
 
-    await sleep(350);
+    await sleep(300);
     if (!mountedRef.current) return;
 
     if (currentPos.x === targetPos.x && currentPos.y === targetPos.y) {
       setStatus('✅ Success! Target reached!');
-      await sleep(950);
-      if (mountedRef.current) onComplete();
+      setIsRunning(false);
+      setHasWon(true);
+      onComplete();
     } else {
       setStatus(crashed ? '💥 CRASH! You hit a wall or edge. Try adjusting your steps.' : 'Robot stopped before reaching the flag. Add more steps!');
       await sleep(1200);
@@ -185,7 +187,7 @@ function LogicMaze({ question, onComplete }) {
             key={cmd}
             className="btn btn-outline"
             onClick={() => addCommand(cmd)}
-            disabled={isRunning}
+            disabled={isRunning || hasWon}
             style={{ fontSize: '12px', padding: '8px 12px', minHeight: '40px' }}
           >
             {cmd}
@@ -215,26 +217,27 @@ function LogicMaze({ question, onComplete }) {
             type="button"
             key={i}
             onClick={() => removeCommand(i)}
+            disabled={isRunning || hasWon}
             style={{
               background: 'var(--color-primary)',
               color: 'white',
               padding: '4px 8px',
               borderRadius: '4px',
               fontSize: '12px',
-              cursor: isRunning ? 'default' : 'pointer',
+              cursor: isRunning || hasWon ? 'default' : 'pointer',
             }}
           >
-            {cmd} {isRunning ? '' : '✕'}
+            {cmd} {isRunning || hasWon ? '' : '✕'}
           </button>
         ))}
       </div>
 
       <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
-        <button type="button" className="btn btn-outline" onClick={clearProgram} disabled={isRunning || program.length === 0}>
+        <button type="button" className="btn btn-outline" onClick={clearProgram} disabled={isRunning || hasWon || program.length === 0}>
           Clear
         </button>
-        <button type="button" className="btn btn-primary" onClick={runProgram} disabled={isRunning || program.length === 0}>
-          {isRunning ? 'Running...' : '▶ Run Program'}
+        <button type="button" className="btn btn-primary" onClick={runProgram} disabled={isRunning || hasWon || program.length === 0}>
+          {hasWon ? 'Completed! ✓' : isRunning ? 'Running...' : '▶ Run Program'}
         </button>
       </div>
     </div>

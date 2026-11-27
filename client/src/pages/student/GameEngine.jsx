@@ -150,16 +150,20 @@ function GameEngine() {
   const [gameState, setGameState] = useState('playing');
   const [currentBlocks, setCurrentBlocks] = useState([]);
   const [codeBlockFeedback, setCodeBlockFeedback] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [roundResult, setRoundResult] = useState(null); // null | { isCorrect, xpAwarded, answer }
 
-  // Refs prevent stale score/XP on the final question submission
+  // Refs prevent stale score/XP on final submission or duplicate callbacks per round
   const xpRef = useRef(0);
   const correctRef = useRef(0);
-  const codeBlockTimerRef = useRef(null);
+  const roundLockedRef = useRef(false);
+  const nextBarRef = useRef(null);
 
   useEffect(() => {
     let active = true;
     xpRef.current = 0;
     correctRef.current = 0;
+    roundLockedRef.current = false;
 
     const loadQuestions = async () => {
       try {
@@ -187,9 +191,14 @@ function GameEngine() {
 
     return () => {
       active = false;
-      if (codeBlockTimerRef.current) clearTimeout(codeBlockTimerRef.current);
     };
   }, [gameSlug]);
+
+  useEffect(() => {
+    if (roundResult && nextBarRef.current) {
+      nextBarRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [roundResult]);
 
   const finishGame = async (finalXp, finalCorrect, totalCount) => {
     setGameState('finished');
@@ -208,7 +217,10 @@ function GameEngine() {
     }
   };
 
-  const advanceRound = (addedXp = 0, wasCorrect = false) => {
+  const completeRound = (addedXp = 0, wasCorrect = false) => {
+    if (roundLockedRef.current) return;
+    roundLockedRef.current = true;
+
     const nextXp = xpRef.current + addedXp;
     const nextCorrect = correctRef.current + (wasCorrect ? 1 : 0);
     xpRef.current = nextXp;
@@ -217,26 +229,40 @@ function GameEngine() {
     if (addedXp > 0) setXpEarned(nextXp);
     if (wasCorrect) setCorrectAnswers(nextCorrect);
 
+    setRoundResult({
+      isCorrect: wasCorrect,
+      xpAwarded: addedXp,
+      answer: questions[currentIndex]?.answer,
+    });
+  };
+
+  const handleNextLevel = () => {
+    roundLockedRef.current = false;
+    setRoundResult(null);
+    setSelectedOption(null);
+    setCodeBlockFeedback(null);
+
     if (currentIndex < questions.length - 1) {
       const nextIdx = currentIndex + 1;
       setCurrentIndex(nextIdx);
-      setCodeBlockFeedback(null);
       if (gameSlug === 'code-blocks') {
         setCurrentBlocks(buildBlocksForQuestion(questions[nextIdx]));
       }
     } else {
-      finishGame(nextXp, nextCorrect, questions.length);
+      finishGame(xpRef.current, correctRef.current, questions.length);
     }
   };
 
   const handleAnswer = (selectedAnswer) => {
+    if (roundLockedRef.current) return;
     const currentQ = questions[currentIndex];
     const isCorrect = selectedAnswer === currentQ.answer;
-    advanceRound(isCorrect ? currentQ.xp : 0, isCorrect);
+    setSelectedOption(selectedAnswer);
+    completeRound(isCorrect ? currentQ.xp : 0, isCorrect);
   };
 
   const handleCodeBlockSelect = (blockId) => {
-    if (codeBlockFeedback !== null) return;
+    if (codeBlockFeedback !== null || roundLockedRef.current) return;
     const currentQ = questions[currentIndex];
     const targetBlock = currentBlocks.find((b) => b.id === blockId);
     if (!targetBlock || targetBlock.selectedOrder !== null) return;
@@ -254,10 +280,7 @@ function GameEngine() {
 
       const isCorrect = JSON.stringify(selectedIndices) === JSON.stringify(currentQ.correctOrder);
       setCodeBlockFeedback(isCorrect ? 'correct' : 'wrong');
-
-      codeBlockTimerRef.current = setTimeout(() => {
-        advanceRound(isCorrect ? currentQ.xp : 0, isCorrect);
-      }, 900);
+      completeRound(isCorrect ? currentQ.xp : 0, isCorrect);
     }
   };
 
@@ -316,8 +339,8 @@ function GameEngine() {
   const questionKey = currentQ.id || currentQ._id || currentIndex;
 
   const renderGameUI = () => {
-    const onWin = () => advanceRound(currentQ.xp || 0, true);
-    const onLose = () => advanceRound(0, false);
+    const onWin = () => completeRound(currentQ.xp || 0, true);
+    const onLose = () => completeRound(0, false);
 
     switch (gameSlug) {
       case 'math-runner':
@@ -342,6 +365,7 @@ function GameEngine() {
                     border: block.selectedOrder !== null ? '1px solid var(--color-primary)' : '1px solid transparent',
                   }}
                   onClick={() => handleCodeBlockSelect(block.id)}
+                  disabled={roundResult !== null}
                 >
                   {block.selectedOrder !== null ? (
                     <span style={{ color: 'var(--color-primary-light)', fontWeight: 'bold', marginRight: '6px' }}>
@@ -388,11 +412,41 @@ function GameEngine() {
       default:
         return (
           <div className="game-options-grid">
-            {currentQ.options?.map((opt, idx) => (
-              <button key={idx} className="game-option-btn" onClick={() => handleAnswer(opt)}>
-                {opt}
-              </button>
-            ))}
+            {currentQ.options?.map((opt, idx) => {
+              const isSelected = selectedOption === opt;
+              const isCorrectAnswer = opt === currentQ.answer;
+              let optionStyle = undefined;
+              if (roundResult !== null) {
+                if (isCorrectAnswer) {
+                  optionStyle = {
+                    borderColor: 'var(--color-success)',
+                    backgroundColor: 'var(--color-success-bg)',
+                    color: 'var(--color-success)',
+                  };
+                } else if (isSelected) {
+                  optionStyle = {
+                    borderColor: 'var(--color-danger)',
+                    backgroundColor: 'var(--color-danger-bg)',
+                    color: 'var(--color-danger)',
+                  };
+                } else {
+                  optionStyle = { opacity: 0.6 };
+                }
+              }
+
+              return (
+                <button
+                  type="button"
+                  key={idx}
+                  className="game-option-btn"
+                  style={optionStyle}
+                  onClick={() => handleAnswer(opt)}
+                  disabled={roundResult !== null}
+                >
+                  {opt}
+                </button>
+              );
+            })}
           </div>
         );
     }
@@ -414,6 +468,8 @@ function GameEngine() {
     'snake-speller',
   ].includes(gameSlug);
 
+  const isLastLevel = currentIndex >= questions.length - 1;
+
   return (
     <div className="game-player">
       <div className="game-header">
@@ -421,7 +477,7 @@ function GameEngine() {
           Back
         </button>
         <div className="game-progress">
-          Question {currentIndex + 1} of {questions.length}
+          Level {currentIndex + 1} of {questions.length}
         </div>
         <div className="game-xp">{xpEarned} XP</div>
       </div>
@@ -433,6 +489,28 @@ function GameEngine() {
       )}
 
       {renderGameUI()}
+
+      {roundResult && (
+        <div
+          ref={nextBarRef}
+          className={`game-next-bar ${roundResult.isCorrect ? 'game-next-bar--win' : 'game-next-bar--lose'}`}
+        >
+          <div className="game-next-info">
+            {roundResult.isCorrect ? (
+              <span>
+                🎉 Level Complete! +{roundResult.xpAwarded} XP
+              </span>
+            ) : (
+              <span>
+                ❌ Incorrect{roundResult.answer ? ` — Answer: ${roundResult.answer}` : ''}
+              </span>
+            )}
+          </div>
+          <button type="button" className="btn btn-primary game-next-btn" onClick={handleNextLevel}>
+            {isLastLevel ? 'Finish Game →' : 'Next Level →'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

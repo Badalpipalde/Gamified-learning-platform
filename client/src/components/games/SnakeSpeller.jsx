@@ -36,7 +36,13 @@ function SnakeSpeller({ question, onComplete, onFail }) {
     food: null,
     gameOver: false,
   });
-  const timerRef = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+  const onFailRef = useRef(onFail);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+    onFailRef.current = onFail;
+  }, [onComplete, onFail]);
 
   useEffect(() => {
     stateRef.current.food = food;
@@ -44,6 +50,7 @@ function SnakeSpeller({ question, onComplete, onFail }) {
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (stateRef.current.gameOver) return;
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
         e.preventDefault();
       }
@@ -78,7 +85,7 @@ function SnakeSpeller({ question, onComplete, onFail }) {
       if (hitWall || hitSelf) {
         s.gameOver = true;
         setGameOver(true);
-        timerRef.current = setTimeout(onFail, 1000);
+        onFailRef.current();
         return;
       }
 
@@ -94,7 +101,7 @@ function SnakeSpeller({ question, onComplete, onFail }) {
           setSnake(newSnake);
           s.gameOver = true;
           setGameOver(true);
-          timerRef.current = setTimeout(onComplete, 1000);
+          onCompleteRef.current();
           return;
         }
 
@@ -111,9 +118,8 @@ function SnakeSpeller({ question, onComplete, onFail }) {
 
     return () => {
       clearInterval(interval);
-      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [targetWord, onComplete, onFail]);
+  }, [targetWord]);
 
   const changeDir = (nx, ny) => {
     if (stateRef.current.gameOver) return;

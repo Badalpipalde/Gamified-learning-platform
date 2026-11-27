@@ -1,18 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
 function FractionPizza({ question, onComplete, onFail }) {
   const totalSlices = 8;
   const [selectedSlices, setSelectedSlices] = useState(() => Array(totalSlices).fill(false));
   const [feedback, setFeedback] = useState(null); // null | 'correct' | 'wrong'
-  const timerRef = useRef(null);
 
   const targetSlices = parseInt(question.answer, 10) || 4;
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, []);
 
   const handleSliceClick = (index) => {
     if (feedback !== null) return;
@@ -34,14 +27,11 @@ function FractionPizza({ question, onComplete, onFail }) {
     if (feedback !== null) return;
     const isCorrect = selectedCount === targetSlices;
     setFeedback(isCorrect ? 'correct' : 'wrong');
-
-    timerRef.current = setTimeout(() => {
-      if (isCorrect) {
-        onComplete();
-      } else {
-        onFail();
-      }
-    }, 950);
+    if (isCorrect) {
+      onComplete();
+    } else {
+      onFail();
+    }
   };
 
   const radius = 148;

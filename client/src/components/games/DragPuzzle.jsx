@@ -1,19 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 function DragPuzzle({ question, onComplete, onFail }) {
   const [selectedOpt, setSelectedOpt] = useState(null);
   const [status, setStatus] = useState(null); // null | 'correct' | 'wrong'
   const [isDragOver, setIsDragOver] = useState(false);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
 
   const options = question.options || [];
   const hasBlank = typeof question.question === 'string' && question.question.includes('___');
@@ -27,14 +18,10 @@ function DragPuzzle({ question, onComplete, onFail }) {
 
     if (opt === question.answer) {
       setStatus('correct');
-      timerRef.current = setTimeout(() => {
-        onComplete();
-      }, 950);
+      onComplete();
     } else {
       setStatus('wrong');
-      timerRef.current = setTimeout(() => {
-        onFail();
-      }, 950);
+      onFail();
     }
   };
 

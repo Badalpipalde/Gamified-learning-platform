@@ -38,10 +38,15 @@ function RocketSpeller({ question, onComplete }) {
     lastShot: 0,
     gameOver: false,
   });
-  const timerRef = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (gameRef.current.gameOver) return;
       if (['ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
         e.preventDefault();
       }
@@ -90,6 +95,8 @@ function RocketSpeller({ question, onComplete }) {
         }
       });
 
+      let finishedThisFrame = false;
+
       for (let i = s.bullets.length - 1; i >= 0; i--) {
         const b = s.bullets[i];
         for (let j = s.asteroids.length - 1; j >= 0; j--) {
@@ -104,7 +111,7 @@ function RocketSpeller({ question, onComplete }) {
               s.spelled = newSpelled;
               if (newSpelled === targetWord) {
                 s.gameOver = true;
-                timerRef.current = setTimeout(onComplete, 900);
+                finishedThisFrame = true;
               }
             } else {
               s.spelled = '';
@@ -122,6 +129,11 @@ function RocketSpeller({ question, onComplete }) {
         gameOver: s.gameOver,
       });
 
+      if (finishedThisFrame) {
+        onCompleteRef.current();
+        return;
+      }
+
       if (!s.gameOver) {
         frameId = requestAnimationFrame(loop);
       }
@@ -133,9 +145,8 @@ function RocketSpeller({ question, onComplete }) {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       if (frameId) cancelAnimationFrame(frameId);
-      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [targetWord, onComplete]);
+  }, [targetWord]);
 
   const fireBullet = () => {
     const s = gameRef.current;

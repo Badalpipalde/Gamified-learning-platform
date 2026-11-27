@@ -1,20 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 
 function VirtualLab({ question, onComplete, onFail }) {
   const [inFlask, setInFlask] = useState([]);
   const [reaction, setReaction] = useState(null); // null | 'success' | 'explosion'
   const [isDragOver, setIsDragOver] = useState(false);
-  const timerRef = useRef(null);
-
-  // Clean up any active reaction timer on unmount
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
 
   const options =
     Array.isArray(question?.options) && question.options.length > 0
@@ -39,14 +29,10 @@ function VirtualLab({ question, onComplete, onFail }) {
 
     if (item === question.answer) {
       setReaction('success');
-      timerRef.current = setTimeout(() => {
-        onComplete();
-      }, 1300);
+      onComplete();
     } else {
       setReaction('explosion');
-      timerRef.current = setTimeout(() => {
-        onFail();
-      }, 1300);
+      onFail();
     }
   };
 
@@ -295,7 +281,7 @@ function VirtualLab({ question, onComplete, onFail }) {
         )}
         {reaction === 'explosion' && (
           <div style={{ color: '#dc2626', fontWeight: 700, fontSize: '0.95rem' }}>
-            ❌ Unexpected reaction! Moving to next experiment...
+            ❌ Unexpected reaction! Click Next below to continue.
           </div>
         )}
       </div>

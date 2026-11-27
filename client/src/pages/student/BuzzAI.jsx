@@ -14,6 +14,7 @@ function BuzzAI() {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,14 +24,22 @@ function BuzzAI() {
     scrollToBottom();
   }, [messages]);
 
+  const focusInput = () => {
+    inputRef.current?.focus({ preventScroll: true });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading) return;
+    if (!input.trim() || loading) {
+      focusInput();
+      return;
+    }
 
     const userMessage = { role: 'user', content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
+    focusInput();
 
     try {
       // Send chat history to backend
@@ -50,6 +59,11 @@ function BuzzAI() {
       console.error("Chat error:", error);
     } finally {
       setLoading(false);
+      requestAnimationFrame(() => {
+        if (document.activeElement === document.body) {
+          focusInput();
+        }
+      });
     }
   };
 
@@ -147,16 +161,17 @@ function BuzzAI() {
         <div className="buzz-input-bar">
           <form onSubmit={handleSubmit} className="buzz-input-form">
             <input
+              ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Ask Star Command..."
               className="buzz-input"
-              disabled={loading}
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
+              onMouseDown={(e) => e.preventDefault()}
               className="buzz-send-btn"
               style={{
                 cursor: loading || !input.trim() ? 'not-allowed' : 'pointer',

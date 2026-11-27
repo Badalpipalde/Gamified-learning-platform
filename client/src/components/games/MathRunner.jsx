@@ -26,7 +26,13 @@ function MathRunner({ question, onComplete, onFail }) {
   const containerRef = useRef(null);
   const requestRef = useRef(null);
   const lastTimeRef = useRef(null);
-  const timerRef = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+  const onFailRef = useRef(onFail);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+    onFailRef.current = onFail;
+  }, [onComplete, onFail]);
 
   const playerXRef = useRef(50);
   const [initialBlocks] = useState(() => buildBlocks(question));
@@ -57,19 +63,17 @@ function MathRunner({ question, onComplete, onFail }) {
     };
   }, []);
 
-  // Main delta-time game loop (never restarts on playerX changes, never calls callbacks in state updaters)
+  // Main delta-time game loop (never restarts on playerX or callback changes)
   useEffect(() => {
     const finishRound = (isCorrect, message) => {
       if (resolvedRef.current) return;
       resolvedRef.current = true;
       setFeedback({ type: isCorrect ? 'correct' : 'wrong', text: message });
-      timerRef.current = setTimeout(() => {
-        if (isCorrect) {
-          onComplete();
-        } else {
-          onFail();
-        }
-      }, 850);
+      if (isCorrect) {
+        onCompleteRef.current();
+      } else {
+        onFailRef.current();
+      }
     };
 
     const tick = (timestamp) => {
@@ -142,9 +146,8 @@ function MathRunner({ question, onComplete, onFail }) {
 
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
-      if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [question, onComplete, onFail]);
+  }, [question]);
 
   const movePlayerToClientX = (clientX) => {
     if (resolvedRef.current || !containerRef.current) return;
