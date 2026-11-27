@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import api from '../../services/api';
+import { useTheme } from '../../context/ThemeContext';
 import buzzImg from '../../img/buzz.jpeg';
 import bgImg from '../../img/bg.png';
 import '../../assets/styles/pages/games.css';
 
 function BuzzAI() {
+  const { isDark } = useTheme();
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Anant se bhi aage! Hi there space ranger! I am Buzz Lightyear. What would you like to learn about today?' }
   ]);
@@ -67,7 +69,9 @@ function BuzzAI() {
       <div
         className="buzz-chat-box"
         style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.40), rgba(255, 255, 255, 0.40)), url("${bgImg}")`,
+          backgroundImage: isDark
+            ? `linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.82)), url("${bgImg}")`
+            : `linear-gradient(rgba(255, 255, 255, 0.40), rgba(255, 255, 255, 0.40)), url("${bgImg}")`,
         }}
       >
         {/* Messages Area */}
@@ -90,7 +94,7 @@ function BuzzAI() {
                   width: '36px',
                   height: '36px',
                   borderRadius: '50%',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'var(--color-surface)',
                   backgroundImage: `url("${buzzImg}")`,
                   backgroundSize: 'cover',
                   backgroundPosition: 'top center',
@@ -102,8 +106,8 @@ function BuzzAI() {
                 className="buzz-bubble"
                 style={{
                   borderRadius: msg.role === 'user' ? '20px 20px 0 20px' : '20px 20px 20px 0',
-                  backgroundColor: msg.role === 'user' ? '#6200ea' : '#ffffff',
-                  color: msg.role === 'user' ? '#ffffff' : '#333333',
+                  backgroundColor: msg.role === 'user' ? '#6200ea' : 'var(--color-surface)',
+                  color: msg.role === 'user' ? '#ffffff' : 'var(--color-text)',
                   border: msg.role === 'assistant' ? '2px solid #aeea00' : 'none',
                   position: 'relative'
                 }}
@@ -122,17 +126,17 @@ function BuzzAI() {
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                backgroundColor: '#ffffff',
+                backgroundColor: 'var(--color-surface)',
                 backgroundImage: `url("${buzzImg}")`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'top center',
                 border: '2px solid #6200ea',
                 flexShrink: 0
               }} />
-              <div style={{ padding: '12px 20px', borderRadius: '20px 20px 20px 0', backgroundColor: '#ffffff', border: '2px solid #aeea00', color: '#666', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} style={{ width: '6px', height: '6px', backgroundColor: '#6200ea', borderRadius: '50%' }} />
-                <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} style={{ width: '6px', height: '6px', backgroundColor: '#6200ea', borderRadius: '50%' }} />
-                <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} style={{ width: '6px', height: '6px', backgroundColor: '#6200ea', borderRadius: '50%' }} />
+              <div style={{ padding: '12px 20px', borderRadius: '20px 20px 20px 0', backgroundColor: 'var(--color-surface)', border: '2px solid #aeea00', color: 'var(--color-text-secondary)', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0 }} style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-accent)', borderRadius: '50%' }} />
+                <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.2 }} style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-accent)', borderRadius: '50%' }} />
+                <motion.span animate={{ y: [0, -5, 0] }} transition={{ repeat: Infinity, duration: 0.6, delay: 0.4 }} style={{ width: '6px', height: '6px', backgroundColor: 'var(--color-accent)', borderRadius: '50%' }} />
               </div>
             </motion.div>
           )}

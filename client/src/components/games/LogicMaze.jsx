@@ -105,8 +105,8 @@ function LogicMaze({ question, onComplete, onFail }) {
         borderRadius: '8px'
       }}>
         {grid.map((row, y) => row.map((cell, x) => {
-          let bg = 'white';
-          if (cell === 1) bg = '#333';
+          let bg = 'var(--color-surface-raised)';
+          if (cell === 1) bg = '#334155';
           if (cell === 3) bg = 'var(--color-success)'; // Target
           
           const isRobotHere = robotPos.x === x && robotPos.y === y;

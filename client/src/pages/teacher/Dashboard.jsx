@@ -112,15 +112,17 @@ function TeacherDashboard() {
             <div className="chart-container">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 12, top: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E0DDD8" horizontal={false} />
-                  <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} fontSize={12} />
-                  <YAxis type="category" dataKey="name" width={72} fontSize={12} tick={{ fill: '#4A4A4A' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" horizontal={false} />
+                  <XAxis type="number" domain={[0, 100]} tickFormatter={(v) => `${v}%`} fontSize={12} stroke="var(--color-text-muted)" />
+                  <YAxis type="category" dataKey="name" width={72} fontSize={12} tick={{ fill: 'var(--color-text-secondary)' }} />
                   <Tooltip
                     formatter={(value, name) => {
                       if (name === 'score') return [`${value}%`, 'Avg Score'];
                       return [value, name];
                     }}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #E0DDD8', fontSize: '13px' }}
+                    contentStyle={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '13px' }}
+                    itemStyle={{ color: 'var(--color-text)' }}
+                    labelStyle={{ color: 'var(--color-text)' }}
                   />
                   <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={24}>
                     {chartData.map((entry, i) => {

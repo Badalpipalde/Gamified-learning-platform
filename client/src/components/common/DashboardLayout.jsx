@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import logo from '../../img/logo.png';
 import {
   LayoutDashboard,
@@ -16,7 +17,8 @@ import {
   Mail,
   GraduationCap,
   School,
-  Bell,
+  Sun,
+  Moon,
   X
 } from 'lucide-react';
 
@@ -52,6 +54,7 @@ const navConfig = {
 
 function DashboardLayout() {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -151,9 +154,14 @@ function DashboardLayout() {
         </div>
 
         <div className="navbar-actions">
-          <button className="navbar-bell-btn" aria-label="Notifications">
-            <Bell size={18} />
-            <span className="navbar-bell-badge">6</span>
+          <button
+            type="button"
+            className="navbar-theme-btn"
+            onClick={toggleTheme}
+            aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
           <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>

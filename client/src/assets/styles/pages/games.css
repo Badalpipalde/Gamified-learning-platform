@@ -305,7 +305,7 @@
 
 .buzz-title {
   margin: 0;
-  color: #6200ea;
+  color: var(--color-accent-dark);
   text-transform: uppercase;
   letter-spacing: 1.5px;
   font-weight: 900;
@@ -314,7 +314,7 @@
 
 .buzz-subtitle {
   margin: 0;
-  color: #666;
+  color: var(--color-text-secondary);
   font-weight: 600;
   font-size: clamp(0.75rem, 2.5vw, 0.95rem);
 }
@@ -322,11 +322,11 @@
 .buzz-chat-box {
   flex: 1;
   min-height: 0;
-  background-color: #f5f5f5;
+  background-color: var(--color-surface-raised);
   background-size: cover;
   background-position: center;
   border-radius: 16px;
-  border: 3px solid #8c9eff;
+  border: 3px solid var(--color-primary-light);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -347,14 +347,14 @@
   padding: 10px 14px;
   font-size: 0.95rem;
   line-height: 1.45;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   overflow-wrap: break-word;
 }
 
 .buzz-input-bar {
   padding: var(--space-2) var(--space-3);
-  background-color: #ffffff;
-  border-top: 2px solid #eee;
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
 }
 
 .buzz-input-form {
@@ -368,14 +368,16 @@
   min-width: 0;
   padding: 11px 14px;
   border-radius: 30px;
-  border: 2px solid #ccc;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface-raised);
+  color: var(--color-text);
   font-size: 0.95rem;
   outline: none;
   transition: border-color 0.2s;
 }
 
 .buzz-input:focus {
-  border-color: #6200ea;
+  border-color: var(--color-accent);
 }
 
 .buzz-send-btn {

@@ -60,7 +60,7 @@ function Level2({ onComplete }) {
           <p style={{ fontSize: '14px', marginBottom: '10px' }}>A variable is like a box that holds a value.</p>
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--color-text)' }}>int diamonds</div>
-            <div style={{ width: '100px', height: '60px', margin: '5px auto', border: '2px dashed var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', background: 'white' }}>{codeValue}</div>
+            <div style={{ width: '100px', height: '60px', margin: '5px auto', border: '2px dashed var(--color-primary)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold', background: 'var(--color-surface)', color: 'var(--color-text)' }}>{codeValue}</div>
           </div>
         </div>
         <div style={{ flex: '1', background: '#1e1e1e', borderRadius: '8px', padding: '16px', fontFamily: 'monospace', color: '#d4d4d4', minHeight: '200px', display: 'flex', flexDirection: 'column' }}>

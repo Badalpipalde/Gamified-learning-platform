@@ -204,7 +204,7 @@ function VirtualLab({ question, onComplete, onFail }) {
           }`,
           borderTop: 'none',
           borderRadius: '0 0 46px 46px',
-          background: '#f8fafc',
+          background: 'var(--color-surface-raised)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -225,7 +225,7 @@ function VirtualLab({ question, onComplete, onFail }) {
             left: 0,
             right: 0,
             height: '8px',
-            borderBottom: '2px dashed #cbd5e1',
+            borderBottom: '2px dashed var(--color-border)',
           }}
         />
 
@@ -261,7 +261,7 @@ function VirtualLab({ question, onComplete, onFail }) {
           {reaction === 'explosion' && <div style={{ fontSize: '2.4rem' }}>💥</div>}
 
           {inFlask.length === 0 ? (
-            <div style={{ color: '#475569', fontSize: '0.85rem', fontWeight: 600 }}>
+            <div style={{ color: 'var(--color-text-secondary)', fontSize: '0.85rem', fontWeight: 600 }}>
               {isDragOver ? 'Release to mix!' : 'Drop reagent here'}
             </div>
           ) : (

@@ -191,7 +191,9 @@ function StudentDashboard() {
                     />
                     <Tooltip
                       formatter={(value) => [`${value}%`, 'Avg Score']}
-                      contentStyle={{ borderRadius: '12px', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)', fontSize: '14px', fontWeight: '500' }}
+                      contentStyle={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', borderRadius: '12px', border: '1px solid var(--color-border)', boxShadow: 'var(--shadow-lg)', fontSize: '14px', fontWeight: '500' }}
+                      itemStyle={{ color: 'var(--color-text)' }}
+                      labelStyle={{ color: 'var(--color-text)' }}
                       cursor={{ fill: 'var(--color-surface-raised)' }}
                     />
                     <Bar dataKey="score" radius={[0, 6, 6, 0]} barSize={20}>
