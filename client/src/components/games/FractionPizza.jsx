@@ -1,39 +1,50 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 
 function FractionPizza({ question, onComplete, onFail }) {
   const totalSlices = 8;
-  const [selectedSlices, setSelectedSlices] = useState(Array(totalSlices).fill(false));
-  
-  // Extract target from answer (e.g. "4 slices" -> 4)
-  const targetSlices = parseInt(question.answer) || 4;
+  const [selectedSlices, setSelectedSlices] = useState(() => Array(totalSlices).fill(false));
+  const [feedback, setFeedback] = useState(null); // null | 'correct' | 'wrong'
+  const timerRef = useRef(null);
+
+  const targetSlices = parseInt(question.answer, 10) || 4;
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
 
   const handleSliceClick = (index) => {
-    setSelectedSlices(prev => {
-      const newSlices = [...prev];
-      newSlices[index] = !newSlices[index];
-      return newSlices;
+    if (feedback !== null) return;
+    setSelectedSlices((prev) => {
+      const next = [...prev];
+      next[index] = !next[index];
+      return next;
     });
   };
 
-  const handleReset = () => setSelectedSlices(Array(totalSlices).fill(false));
+  const handleReset = () => {
+    if (feedback !== null) return;
+    setSelectedSlices(Array(totalSlices).fill(false));
+  };
 
   const selectedCount = selectedSlices.filter(Boolean).length;
 
   const handleSubmit = () => {
-    if (selectedCount === targetSlices) {
-      onComplete();
-    } else {
-      onFail();
-    }
+    if (feedback !== null) return;
+    const isCorrect = selectedCount === targetSlices;
+    setFeedback(isCorrect ? 'correct' : 'wrong');
+
+    timerRef.current = setTimeout(() => {
+      if (isCorrect) {
+        onComplete();
+      } else {
+        onFail();
+      }
+    }, 950);
   };
 
-  useEffect(() => {
-    setSelectedSlices(Array(totalSlices).fill(false));
-  }, [question]);
-
-  // SVG dimensions
-  const radius = 148; // slightly less than 150 to account for stroke
+  const radius = 148;
   const center = 150;
 
   const getSlicePath = (index) => {
@@ -41,7 +52,6 @@ function FractionPizza({ question, onComplete, onFail }) {
     const startAngle = index * anglePerSlice;
     const endAngle = (index + 1) * anglePerSlice;
 
-    // Convert angles to radians and adjust to start at top (-90 degrees)
     const startRad = (startAngle - 90) * (Math.PI / 180);
     const endRad = (endAngle - 90) * (Math.PI / 180);
 
@@ -51,29 +61,24 @@ function FractionPizza({ question, onComplete, onFail }) {
     const y2 = center + radius * Math.sin(endRad);
 
     const largeArcFlag = anglePerSlice > 180 ? 1 : 0;
-
     return `M ${center} ${center} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
   };
 
   return (
-    <div style={{ textAlign: 'center', padding: '20px' }}>
-      <h2 style={{ fontSize: '2rem', marginBottom: '20px' }}>{question.question}</h2>
-      
-      <div style={{ 
-        position: 'relative', 
-        width: '100%', 
-        maxWidth: '300px',
-        margin: '0 auto', 
-      }}>
-        <svg 
-          width="100%" 
-          height="100%" 
-          viewBox="0 0 300 300" 
-          style={{ cursor: 'pointer', overflow: 'visible' }}
+    <div style={{ textAlign: 'center', padding: 'clamp(12px, 3vw, 24px)' }}>
+      <h2 style={{ fontSize: 'clamp(1.2rem, 4vw, 1.85rem)', marginBottom: '20px', color: 'var(--color-text)' }}>
+        {question.question}
+      </h2>
+
+      <div style={{ position: 'relative', width: '100%', maxWidth: '280px', margin: '0 auto' }}>
+        <svg
+          width="100%"
+          height="100%"
+          viewBox="0 0 300 300"
+          style={{ cursor: feedback ? 'default' : 'pointer', overflow: 'visible' }}
         >
           <circle cx="150" cy="150" r="148" fill="#fff3e0" stroke="#ff9800" strokeWidth="4" />
-          
-          {/* Draw slices */}
+
           {[...Array(totalSlices)].map((_, i) => (
             <path
               key={i}
@@ -82,22 +87,38 @@ function FractionPizza({ question, onComplete, onFail }) {
               stroke="#ff9800"
               strokeWidth="2"
               onClick={() => handleSliceClick(i)}
-              style={{ transition: 'fill 0.3s ease' }}
+              style={{ transition: 'fill 0.2s ease' }}
             />
           ))}
-          
-          {/* Center crust */}
+
           <circle cx="150" cy="150" r="20" fill="#ffb74d" />
         </svg>
       </div>
 
-      <div style={{ marginTop: '30px', fontSize: '1.5rem', fontWeight: 'bold' }}>
+      <div style={{ marginTop: '20px', fontSize: 'clamp(1.1rem, 3.5vw, 1.4rem)', fontWeight: 'bold', color: 'var(--color-text)' }}>
         Selected: {selectedCount} / {totalSlices}
       </div>
 
-      <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '10px' }}>
-        <button className="btn btn-outline" onClick={handleReset}>Reset</button>
-        <button className="btn btn-primary" onClick={handleSubmit}>Submit Pizza</button>
+      <div style={{ minHeight: '28px', marginTop: '10px' }}>
+        {feedback === 'correct' && (
+          <div style={{ color: 'var(--color-success)', fontWeight: 'bold' }}>
+            ✅ Perfect! {selectedCount}/{totalSlices} slices!
+          </div>
+        )}
+        {feedback === 'wrong' && (
+          <div style={{ color: 'var(--color-danger)', fontWeight: 'bold' }}>
+            ❌ Needed {targetSlices}/{totalSlices} slices!
+          </div>
+        )}
+      </div>
+
+      <div style={{ marginTop: '16px', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
+        <button type="button" className="btn btn-outline" onClick={handleReset} disabled={feedback !== null}>
+          Reset
+        </button>
+        <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={feedback !== null}>
+          Submit Pizza
+        </button>
       </div>
     </div>
   );

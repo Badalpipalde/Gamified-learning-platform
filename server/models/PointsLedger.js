@@ -9,7 +9,7 @@ const pointsLedgerSchema = new mongoose.Schema(
     },
     source: {
       type: String,
-      enum: ['quiz', 'streak', 'badge', 'coding', 'bonus'],
+      enum: ['quiz', 'streak', 'badge', 'coding', 'game', 'bonus'],
       required: true,
     },
     sourceId: {

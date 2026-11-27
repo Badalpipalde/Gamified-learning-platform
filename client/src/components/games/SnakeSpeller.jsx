@@ -1,130 +1,175 @@
 import { useState, useEffect, useRef } from 'react';
 
+const GRID_SIZE = 10;
+
+function spawnFoodAvoidingSnake(snake, char) {
+  const occupied = new Set(snake.map((s) => `${s.x},${s.y}`));
+  const freeCells = [];
+  for (let x = 0; x < GRID_SIZE; x++) {
+    for (let y = 0; y < GRID_SIZE; y++) {
+      if (!occupied.has(`${x},${y}`)) {
+        freeCells.push({ x, y });
+      }
+    }
+  }
+  const pick =
+    freeCells.length > 0
+      ? freeCells[Math.floor(Math.random() * freeCells.length)]
+      : { x: 0, y: 0 };
+  return { x: pick.x, y: pick.y, char };
+}
+
 function SnakeSpeller({ question, onComplete, onFail }) {
-  const targetWord = (question.answer || "APPLE").toUpperCase();
-  const [spelled, setSpelled] = useState("");
-  const [snake, setSnake] = useState([{x: 5, y: 5}]);
-  const [dir, setDir] = useState({x: 0, y: -1});
-  const [food, setFood] = useState({x: 3, y: 3, char: targetWord[0]});
+  const targetWord = (question.answer || 'APPLE').toUpperCase();
+  const initialSnake = [{ x: 5, y: 5 }];
+
+  const [spelled, setSpelled] = useState('');
+  const [snake, setSnake] = useState(initialSnake);
+  const [food, setFood] = useState(() => spawnFoodAvoidingSnake(initialSnake, targetWord[0]));
   const [gameOver, setGameOver] = useState(false);
-  
-  const gridSize = 10;
-  
-  // Use a ref for current state to avoid closure issues in the interval
-  const stateRef = useRef({ snake, dir, spelled, food, gameOver });
-  
-  useEffect(() => {
-    stateRef.current = { snake, dir, spelled, food, gameOver };
+
+  const stateRef = useRef({
+    snake: initialSnake,
+    dir: { x: 0, y: -1 },
+    lastMovedDir: { x: 0, y: -1 },
+    spelled: '',
+    food: null,
+    gameOver: false,
   });
+  const timerRef = useRef(null);
 
   useEffect(() => {
-    setSpelled("");
-    setSnake([{x: 5, y: 5}]);
-    setDir({x: 0, y: -1});
-    setFood({x: Math.floor(Math.random() * gridSize), y: Math.floor(Math.random() * gridSize), char: targetWord[0]});
-    setGameOver(false);
-  }, [question, targetWord]);
+    stateRef.current.food = food;
+  }, [food]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
-      const { dir } = stateRef.current;
-      if (e.key === 'ArrowUp' && dir.y !== 1) setDir({x: 0, y: -1});
-      if (e.key === 'ArrowDown' && dir.y !== -1) setDir({x: 0, y: 1});
-      if (e.key === 'ArrowLeft' && dir.x !== 1) setDir({x: -1, y: 0});
-      if (e.key === 'ArrowRight' && dir.x !== -1) setDir({x: 1, y: 0});
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+      }
+      const lastDir = stateRef.current.lastMovedDir;
+      if (e.key === 'ArrowUp' && lastDir.y !== 1) stateRef.current.dir = { x: 0, y: -1 };
+      if (e.key === 'ArrowDown' && lastDir.y !== -1) stateRef.current.dir = { x: 0, y: 1 };
+      if (e.key === 'ArrowLeft' && lastDir.x !== 1) stateRef.current.dir = { x: -1, y: 0 };
+      if (e.key === 'ArrowRight' && lastDir.x !== -1) stateRef.current.dir = { x: 1, y: 0 };
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   useEffect(() => {
-    const tick = setInterval(() => {
-      const { snake, dir, spelled, food, gameOver } = stateRef.current;
-      if (gameOver) return;
+    const interval = setInterval(() => {
+      const s = stateRef.current;
+      if (s.gameOver) return;
 
-      const newHead = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
-      
-      // Hit wall
-      if (newHead.x < 0 || newHead.x >= gridSize || newHead.y < 0 || newHead.y >= gridSize) {
+      const currentDir = s.dir;
+      s.lastMovedDir = currentDir;
+
+      const newHead = { x: s.snake[0].x + currentDir.x, y: s.snake[0].y + currentDir.y };
+
+      const hitWall =
+        newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE;
+
+      const currentFood = s.food;
+      const willEat = currentFood && newHead.x === currentFood.x && newHead.y === currentFood.y;
+      const bodyToCheck = willEat ? s.snake : s.snake.slice(0, -1);
+      const hitSelf = bodyToCheck.some((seg) => seg.x === newHead.x && seg.y === newHead.y);
+
+      if (hitWall || hitSelf) {
+        s.gameOver = true;
         setGameOver(true);
-        setTimeout(onFail, 1000);
+        timerRef.current = setTimeout(onFail, 1000);
         return;
       }
-      
-      const newSnake = [newHead, ...snake];
 
-      // Eat food
-      if (newHead.x === food.x && newHead.y === food.y) {
-        const newSpelled = spelled + food.char;
+      const newSnake = [newHead, ...s.snake];
+
+      if (willEat) {
+        const newSpelled = s.spelled + currentFood.char;
+        s.spelled = newSpelled;
         setSpelled(newSpelled);
-        
+
         if (newSpelled === targetWord) {
+          s.snake = newSnake;
+          setSnake(newSnake);
+          s.gameOver = true;
           setGameOver(true);
-          setTimeout(onComplete, 1000);
+          timerRef.current = setTimeout(onComplete, 1000);
           return;
-        } else {
-          // spawn next letter
-          setFood({
-            x: Math.floor(Math.random() * gridSize), 
-            y: Math.floor(Math.random() * gridSize), 
-            char: targetWord[newSpelled.length]
-          });
         }
+
+        const nextFood = spawnFoodAvoidingSnake(newSnake, targetWord[newSpelled.length]);
+        s.food = nextFood;
+        setFood(nextFood);
       } else {
         newSnake.pop();
       }
-      
-      setSnake(newSnake);
-    }, 400);
 
-    return () => clearInterval(tick);
+      s.snake = newSnake;
+      setSnake(newSnake);
+    }, 340);
+
+    return () => {
+      clearInterval(interval);
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [targetWord, onComplete, onFail]);
 
   const changeDir = (nx, ny) => {
-    const current = stateRef.current.dir;
-    if (nx !== 0 && current.x !== -nx) setDir({ x: nx, y: 0 });
-    if (ny !== 0 && current.y !== -ny) setDir({ x: 0, y: ny });
+    if (stateRef.current.gameOver) return;
+    const lastDir = stateRef.current.lastMovedDir;
+    if (nx !== 0 && lastDir.x !== -nx) stateRef.current.dir = { x: nx, y: 0 };
+    if (ny !== 0 && lastDir.y !== -ny) stateRef.current.dir = { x: 0, y: ny };
   };
 
   return (
     <div style={{ textAlign: 'center', padding: '10px' }}>
-      <h2 style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.4rem)', marginBottom: '10px' }}>{question.question}</h2>
+      <h2 style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.4rem)', marginBottom: '10px', color: 'var(--color-text)' }}>
+        {question.question}
+      </h2>
       <div style={{ fontSize: 'clamp(1.3rem, 5vw, 1.8rem)', marginBottom: '16px', letterSpacing: '4px', fontWeight: 'bold' }}>
         <span style={{ color: 'var(--color-primary)' }}>{spelled.padEnd(targetWord.length, '_')}</span>
       </div>
-      
-      <div style={{ 
-        position: 'relative', 
-        width: '100%', 
-        maxWidth: '340px',
-        aspectRatio: '1 / 1',
-        margin: '0 auto', 
-        backgroundColor: '#e8f5e9',
-        border: '4px solid #4caf50',
-        borderRadius: '8px',
-        boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)'
-      }}>
+
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '340px',
+          aspectRatio: '1 / 1',
+          margin: '0 auto',
+          backgroundColor: '#e8f5e9',
+          border: '4px solid #4caf50',
+          borderRadius: '8px',
+          boxShadow: 'inset 0 0 20px rgba(0,0,0,0.1)',
+          overflow: 'hidden',
+        }}
+      >
         {/* Render Snake */}
         {snake.map((segment, i) => (
-          <div key={i} style={{
-            position: 'absolute',
-            left: `${(segment.x / gridSize) * 100}%`,
-            top: `${(segment.y / gridSize) * 100}%`,
-            width: `${100 / gridSize}%`,
-            height: `${100 / gridSize}%`,
-            backgroundColor: i === 0 ? '#1b5e20' : '#4caf50',
-            borderRadius: i === 0 ? '8px' : '4px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-          }} />
+          <div
+            key={i}
+            style={{
+              position: 'absolute',
+              left: `${(segment.x / GRID_SIZE) * 100}%`,
+              top: `${(segment.y / GRID_SIZE) * 100}%`,
+              width: `${100 / GRID_SIZE}%`,
+              height: `${100 / GRID_SIZE}%`,
+              backgroundColor: i === 0 ? '#1b5e20' : '#4caf50',
+              borderRadius: i === 0 ? '8px' : '4px',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            }}
+          />
         ))}
-        
+
         {/* Render Food */}
-        <div style={{
+        <div
+          style={{
             position: 'absolute',
-            left: `${(food.x / gridSize) * 100}%`,
-            top: `${(food.y / gridSize) * 100}%`,
-            width: `${100 / gridSize}%`,
-            height: `${100 / gridSize}%`,
+            left: `${(food.x / GRID_SIZE) * 100}%`,
+            top: `${(food.y / GRID_SIZE) * 100}%`,
+            width: `${100 / GRID_SIZE}%`,
+            height: `${100 / GRID_SIZE}%`,
             backgroundColor: '#ff5252',
             color: 'white',
             display: 'flex',
@@ -132,27 +177,31 @@ function SnakeSpeller({ question, onComplete, onFail }) {
             justifyContent: 'center',
             fontWeight: 'bold',
             borderRadius: '50%',
-            boxShadow: '0 2px 8px rgba(255,82,82,0.6)'
-        }}>
+            boxShadow: '0 2px 8px rgba(255,82,82,0.6)',
+          }}
+        >
           {food.char}
         </div>
 
         {gameOver && (
-          <div style={{
-            position: 'absolute',
-            top: 0, left: 0, right: 0, bottom: 0,
-            backgroundColor: 'rgba(255,255,255,0.8)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: '#d32f2f'
-          }}>
-            {spelled === targetWord ? 'You Win!' : 'Game Over'}
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.78)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 'clamp(1.6rem, 5vw, 2.2rem)',
+              fontWeight: 'bold',
+              color: spelled === targetWord ? '#4ade80' : '#f87171',
+            }}
+          >
+            {spelled === targetWord ? 'You Win! 🎉' : 'Game Over! 💥'}
           </div>
         )}
       </div>
+
       {/* Touch D-Pad for Mobile */}
       <div className="mobile-dpad">
         <div />
@@ -162,7 +211,7 @@ function SnakeSpeller({ question, onComplete, onFail }) {
         <button type="button" className="mobile-dpad-btn" onClick={() => changeDir(0, 1)} aria-label="Move Down">▼</button>
         <button type="button" className="mobile-dpad-btn" onClick={() => changeDir(1, 0)} aria-label="Move Right">▶</button>
       </div>
-      <p style={{ marginTop: '14px', color: '#666', fontWeight: 'bold', fontSize: '0.85rem' }}>
+      <p style={{ marginTop: '14px', color: 'var(--color-text-secondary)', fontWeight: 'bold', fontSize: '0.85rem' }}>
         Use Arrow Keys or the touch buttons to collect the letters.
       </p>
     </div>
