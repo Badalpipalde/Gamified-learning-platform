@@ -33,9 +33,9 @@ const SUBJECTS = [
     icon: '🔭',
     image: '/assets/images/science_subject.jpg',
     games: [
-      { id: 'science-quiz', title: 'Science Quiz', desc: 'Test your knowledge of the natural world', icon: '🌠🌍', color: '#2196f3' },
-      { id: 'human-body', title: 'Human Body', desc: 'Identify organs by clicking on them', icon: '🫀🧠', color: '#e91e63' },
-      { id: 'virtual-lab', title: 'Virtual Lab', desc: 'Drag and drop chemicals to see reactions', icon: '🧪✨', color: '#00bcd4' }
+      { id: 'science-quiz', title: 'Science Quiz', desc: 'Test your knowledge of the natural world', icon: '🌠🌍', image: '/assets/images/science_quiz.jpg', color: '#2196f3' },
+      { id: 'human-body', title: 'Human Body', desc: 'Identify organs by clicking on them', icon: '🫀🧠', image: '/assets/images/human_body.jpg', color: '#e91e63' },
+      { id: 'virtual-lab', title: 'Virtual Lab', desc: 'Drag and drop chemicals to see reactions', icon: '🧪✨', image: '/assets/images/virtual_lab.jpg', color: '#00bcd4' }
     ]
   },
   {
@@ -44,8 +44,8 @@ const SUBJECTS = [
     icon: '📚',
     image: '/assets/images/english_subject.jpg',
     games: [
-      { id: 'word-scramble', title: 'Word Scramble', desc: 'Unscramble the letters to spell the word', icon: '🔤🌪️', color: '#ff5722' },
-      { id: 'snake-speller', title: 'Snake Speller', desc: 'Guide the snake to eat the correct letters', icon: '🐍🍎', color: '#4caf50' }
+      { id: 'word-scramble', title: 'Word Scramble', desc: 'Unscramble the letters to spell the word', icon: '🔤🌪️', image: '/assets/images/word_scramble.jpg', color: '#ff5722' },
+      { id: 'snake-speller', title: 'Snake Speller', desc: 'Guide the snake to eat the correct letters', icon: '🐍🍎', image: '/assets/images/snake_speller.jpg', color: '#4caf50' }
     ]
   }
 ];
